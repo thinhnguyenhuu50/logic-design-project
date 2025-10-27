@@ -1,0 +1,14 @@
+\section{Giới thiệu}
+Báo cáo này trình bày chi tiết việc triển khai trò chơi Gomoku bằng ngôn ngữ lập trình MIPS assembly, theo yêu cầu của bài tập. Gomoku là một trò chơi chiến thuật dành cho hai người với lịch sử lâu đời, trong đó mục tiêu là tạo thành một đường thẳng liền mạch gồm năm quân cờ - theo chiều ngang, dọc hoặc chéo - trên một bàn cờ kích thước 15x15. Trò chơi nổi tiếng với luật chơi đơn giản nhưng chiến lược sâu sắc, khiến nó trở thành một ứng cử viên lý tưởng để khám phá logic tính toán và quản lý trạng thái trò chơi.
+
+Yêu cầu của bài tập bao gồm:
+\begin{itemize}
+    \item \textbf{Khởi tạo và hiển thị bàn cờ:} Thiết lập và vẽ bàn cờ kích thước 15x15.
+    \item \textbf{Luân phiên lượt chơi:} Xen kẽ lượt chơi giữa hai người chơi, với Người chơi 1 được đại diện bởi “X” và Người chơi 2 bởi “O”.
+    \item \textbf{Nhập nước đi:} Yêu cầu người chơi nhập nước đi theo định dạng “x,y”, đồng thời kiểm tra tính hợp lệ và khả dụng của nước đi trên bàn cờ.
+    \item \textbf{Phát hiện chiến thắng:} Kiểm tra chiến thắng bằng cách xác định năm ký hiệu liên tiếp theo hàng, cột hoặc đường chéo.
+    \item \textbf{Phát hiện hòa:} Nhận diện trường hợp hòa khi bàn cờ được lấp đầy mà không có người chiến thắng.
+    \item \textbf{Xuất kết quả:} Ghi lại trạng thái cuối cùng của bàn cờ và kết quả trò chơi vào tệp “result.txt”.
+\end{itemize}
+
+Báo cáo này tập trung vào việc giải thích các thuật toán và logic đằng sau quá trình triển khai, cung cấp cái nhìn sâu sắc về cách thiết kế từng thành phần của trò chơi và cách chúng tích hợp để tạo nên một ứng dụng hoạt động thống nhất. Các phần sau sẽ trình bày cấu trúc chương trình, các thuật toán được sử dụng cho các chức năng quan trọng, cấu trúc dữ liệu được tận dụng, cũng như các cơ chế xử lý lỗi nhằm đảm bảo trải nghiệm người dùng mượt mà.

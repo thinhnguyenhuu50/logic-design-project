@@ -1,0 +1,95 @@
+\section{Cấu trúc dữ liệu}
+Trong việc triển khai trò chơi Gomoku, bàn cờ được biểu diễn dưới dạng một mảng gồm 752 byte trong bộ nhớ, bao gồm cả hàng đầu hiển thị nhãn cột và 15 hàng ứng với lưới trò chơi 15x15. Mảng này, được gọi là \var{board}, được thiết kế nhằm mô phỏng giao diện hiển thị của terminal, bao gồm các ký tự xuống dòng, tạo điều kiện thuận lợi cho việc trực quan hóa trạng thái của trò chơi.
+
+Mảng \var{board} được cấu trúc thành 16 dòng, mỗi dòng gồm 47 byte, trong đó có ký tự xuống dòng (\textbackslash n) ở cuối dòng. Điều này tạo nên tổng kích thước là \( 16 \times 47 = 752 \) byte, phù hợp với đặc tả đã cung cấp. Bố cục của mảng có thể được hình dung như một mảng hai chiều với kích thước \( 47 \times 16, \)
+trong đó:
+\begin{itemize}
+    \item \textbf{Dòng 0:} Là header, hiển thị nhãn cột từ 0 đến 14. Dòng này bắt đầu với ba khoảng trắng để căn lề, sau đó liệt kê các số cột, được định dạng sao cho phù hợp với các ô chơi bên dưới. Nội dung ban đầu là:
+          \begin{center}
+              \ttfamily
+              \vs \vs \vs 0\vs \vs 1\vs \vs 2\vs \vs 3\vs \vs 4\vs \vs 5\vs \vs 6\vs \vs 7\vs \vs 8\vs \vs 9\vs 10\vs 11\vs 12\vs 13\vs 14\textbackslash n
+          \end{center}
+    \item \textbf{Các dòng 1 đến 15:} Đại diện cho các hàng từ 0 đến 14 của bàn cờ. Mỗi dòng bắt đầu với nhãn hàng (ví dụ, “0 ” cho hàng 0, “10 ” cho hàng 10), sau đó là 15 ô chơi và kết thúc bằng ký tự xuống dòng. Ví dụ, hàng 0 được khởi tạo như sau:
+          \begin{center}
+              \ttfamily
+              0\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+          \end{center}
+          Trong mỗi dòng, nhãn của hàng chiếm 3 byte đầu tiên, đảm bảo căn lề nhất quán:
+          \begin{itemize}
+              \item Đối với các hàng 0 đến 9, nhãn là số của hàng theo sau là hai khoảng trắng (ví dụ “\texttt{1\vs\vs}”).
+              \item Đối với các hàng 10 đến 14, nhãn là số có hai chữ số theo sau là một khoảng trắng (ví dụ “\texttt{10\vs}”).
+          \end{itemize}
+          Sau nhãn, mỗi ô trong 15 ô được biểu diễn bởi chuỗi 3 byte: hai khoảng trắng ở đầu, ký tự nội dung của ô ('.', 'X', hoặc 'O'). Ví dụ, ô trống được biểu diễn là “.”, trong khi ô chứa quân của Người chơi 1 được biểu diễn là “X”. Định dạng này đảm bảo rằng ký tự trong ô được căn chỉnh đồng nhất, hỗ trợ việc hiển thị và thao tác. Hình \ref{fig:board_array} minh họa cách mà mảng \var{board} được tổ chức trong bộ nhớ, với các ký tự đại diện cho các ô chơi và nhãn hàng/cột được căn chỉnh để dễ đọc.
+\end{itemize}
+
+\begin{figure}[!htbp]
+    \centering
+    \ttfamily
+    \vs \vs \vs 0\vs \vs 1\vs \vs 2\vs \vs 3\vs \vs 4\vs \vs 5\vs \vs 6\vs \vs 7\vs \vs 8\vs \vs 9\vs 10\vs 11\vs 12\vs 13\vs 14\textbackslash n
+    0\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    1\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    2\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    3\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    4\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    5\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    6\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{red}{\textbf{O}}\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    7\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{blue}{\textbf{X}}\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    8\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs \textcolor{red}{\textbf{O}}\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    9\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    10\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    11\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    12\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    13\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    14\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\vs\vs .\textbackslash n
+    \caption{Mảng dữ liệu của bàn cờ}
+    \label{fig:board_array}
+\end{figure}
+
+Các thủ tục \var{put} và \var{get} được thiết kế để tương tác với bàn cờ này bằng cách đặt và lấy quân cờ của người chơi (với `\texttt{X}' dành cho Người chơi 1 và `\texttt{O}' dành cho Người chơi 2) tại các tọa độ cụ thể trong \var{board}.
+
+Thủ tục \var{put} chịu trách nhiệm đặt quân cờ của người chơi vào vị trí xác định trên bàn cờ. Nó nhận ba đối số:
+\begin{itemize}
+    \item \var{\$a0}: Tọa độ x (ngang, cột), có giá trị từ 0 đến 14.
+    \item \var{\$a1}: Tọa độ y (dọc, hàng), có giá trị từ 0 đến 14.
+    \item \var{\$a2}: Ký tự cần đặt, có thể là `\texttt{X}' hoặc `\texttt{O}'.
+\end{itemize}
+
+Thủ tục \var{put} tính toán một độ lệch bộ nhớ trong mảng \var{board} và lưu ký tự vào vị trí tương ứng. Cụ thể như sau:
+\begin{code}
+put:
+    li $t0, 50
+    mul $a0, $a0, 47
+    mul $a1, $a1, 3
+    add $t0, $a0, $t0
+    add $t0, $a1, $t0
+    sb $a2, board($t0)
+
+    jr $ra
+\end{code}
+
+Offset được tính theo công thức: \( 50 + x \times 47 + y \times 3 \). Hằng số 50 đại diện cho offset cơ sở, tức là vị trí bắt đầu của ô chơi đầu tiên (hàng 0, cột 0) sau khi đã loại trừ hàng header và định dạng ban đầu ở hàng chơi đầu tiên. Nhân tọa độ \var{x} với 47 tính đến sự đóng góp của vị trí cột trong bố cục theo hàng, khi mỗi hàng chiếm 47 byte. Nhân tọa độ \var{y} với 3 điều chỉnh vị trí trong hàng, vì mỗi ô chơi có sự dịch chuyển vị trí cố định. Offset cuối cùng, được lưu trong \var{\$t0}, chỉ định chính xác byte trong mảng \var{board} nơi quân cờ sẽ được đặt. Lệnh \var{sb} (store byte) ghi ký tự từ \var{\$a2} vào địa chỉ bộ nhớ \var{board(\$t0)}. Ví dụ: Tại tọa độ (0, 0), offset là 50, tương ứng với vị trí của dấu chấm đầu tiên trong hàng ``\texttt{0\vs\vs .\vs\vs (...)}''.
+
+Thủ tục \var{get} truy xuất ký tự tại vị trí cụ thể của bàn cờ, cho phép logic trò chơi kiểm tra trạng thái của ô (ví dụ: để xác định điều kiện chiến thắng). Thủ tục này nhận hai đối số:
+\begin{itemize}
+    \item \var{\$a0}: Tọa độ x (cột).
+    \item \var{\$a1}: Tọa độ y (hàng).
+\end{itemize}
+
+Giá trị được trả về:
+\begin{itemize}
+    \item \var{\$v0}: Ký tự tại vị trí đó (có thể là `X', `O', hoặc `.' nếu ô trống).
+\end{itemize}
+
+Việc hiện thực của \var{get} tương tự thủ tục \var{put} về tính toán độ lệch. Công thức \( 50 + x \times 47 + y \times 3 \) giống hệt như trong \var{put}, đảm bảo nhất quán trong truy cập các vị trí của bàn cờ. Lệnh \var{lb} (load byte) đọc ký tự từ \var{board(\$t0)} và lưu vào \var{\$v0}, sau đó trả về cho caller.
+
+\begin{code}
+get:
+	li $t0, 50
+	mul $a0, $a0, 47
+	mul $a1, $a1, 3
+	add $t0, $a0, $t0
+	add $t0, $a1, $t0
+	lb 	$v0, board($t0)
+	
+	jr $ra
+\end{code}

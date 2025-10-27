@@ -1,0 +1,63 @@
+\documentclass[12pt,twoside]{hcmut_report}
+\upperuniname{ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH}
+\uniname{TRƯỜNG ĐẠI HỌC BÁCH KHOA}
+\deptname{KHOA KHOA HỌC VÀ KỸ THUẬT MÁY TÍNH}
+
+\coursename{KIẾN TRÚC MÁY TÍNH}
+\reporttype{BÁO CÁO BÀI TẬP LỚN}
+\title{FIVE IN A ROW}
+\advisor{
+    Nguyễn Thành Lộc
+}
+\student{
+    Nguyễn Hữu Thịnh,   2313292
+    Nguyễn Chí Thanh,   2313078
+    Nguyễn Thái Sơn,    2312968
+}
+
+\usepackage{codespace}
+
+\definecolor{light-gray}{gray}{0.95}
+\newcommand{\var}[1]{%
+  \tcbox[%
+    on line, % Keeps the box inline with text
+    boxsep=1pt, % Padding inside the box
+    left=2pt, right=2pt, top=2pt, bottom=2pt, % Padding adjustments
+    colback=gray!20!white, % Background color
+    colframe=gray!20!white,
+    boxrule=0pt,
+    rounded corners, % Enable rounded corners
+    arc=3pt, % Radius of the rounded corners
+    fontupper=\ttfamily % Use typewriter font for the content
+  ]{#1}%
+}
+\newcommand{\vs}{\textvisiblespace}
+
+\begin{document}
+\begin{titlepage}
+    \coverpage
+    \newpage
+    \tableofcontents
+    \newpage
+\end{titlepage}
+\setcounter{page}{1}
+\input{contents/1_Introduction.tex}
+\input{contents/2_Program_Structure.tex}
+\input{contents/3_Data_Structures.tex}
+\input{contents/4_Algorithms_and_Logic.tex}
+\input{contents/5_Conclusion.tex}
+
+% \begin{code}
+%     # Example MIPS code
+%     add $t0, $s0, $s1
+%     sub $t1, $s2, $s3
+%     mul $t2, $t0, $t1
+%     div $t2, $t3
+%     mflo $t4
+%     .macro INIT    
+%     strcpy(board, init_board)
+%     li player, 1
+%     li move_count, 224
+%     .end_macro
+% \end{code}
+\end{document}

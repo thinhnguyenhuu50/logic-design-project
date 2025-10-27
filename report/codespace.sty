@@ -1,0 +1,59 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{codespace}
+
+\RequirePackage[framemethod=tikz]{mdframed}
+\RequirePackage{xcolor}
+\RequirePackage{minted}
+
+% Import fonts
+\newfontfamily\GoudySansBlack[Path=./fonts/]{Goudy_Sans_Pro_Black.otf}[NFSSFamily=gsb]
+% \newfontfamily\LucidaFax[Path=./fonts/lcd/]{LFAX.TTF}[NFSSFamily=lcd]
+\newfontfamily\LucidaFax[
+  Path=./fonts/lcd/,
+  NFSSFamily=lcd,
+  Extension = .TTF,
+  UprightFont = LFAX.TTF,
+  BoldFont = LFAXD.TTF,
+  ItalicFont = LFAXI.TTF,
+  BoldItalicFont = LFAXDI.TTF,
+  ]{LFAX.TTF}
+
+% Adjust the number of lines in minted code blocks
+\renewcommand{\theFancyVerbLine}{\textcolor[RGB]{114, 114, 114}{\normalsize\GoudySansBlack\arabic{FancyVerbLine}}}
+
+\mdfsetup{
+  leftline=false,
+  rightline=false,
+  nobreak=false,
+  linecolor=cyan,
+  linewidth=0.6pt,
+  innerleftmargin=40pt
+}
+
+\surroundwithmdframed{minted}
+
+\usemintedstyle{default}
+\setminted{
+  fontsize=auto,
+  linenos=true,
+  numbersep=20pt,
+  numbers=left,
+  autogobble=true,
+  breaklines=true,
+  breaksymbolleft=\textcolor{red}{$\blacktriangledown$},
+  breaksymbolright=\textcolor{red}{$\blacktriangledown$},
+  escapeinside=||,
+  mathescape=false,
+  tabsize=4,
+  baselinestretch=0.8,
+  fontfamily=lcd
+}
+
+% Functionality
+\newenvironment{code}{
+  \VerbatimEnvironment%        
+  \begin{minted}{gas}%
+}
+{
+    \end{minted}%  
+}
