@@ -14,3 +14,7 @@ Desktop.ini
 
 *.xpr
 *.wcfg
+
+/convolution-verilog/FFT/*
+!/convolution-verilog/FFT/FFT.srcs/
+!/convolution-verilog/FFT/FFT.srcs/**
