@@ -12,6 +12,7 @@ module SIPO #(
             shift_reg <= {shift_reg[DATA_WIDTH-2:0], serial_in};
             end
         end
+    assign parallel_out = shift_reg;
 endmodule
 
 module PISO #(
