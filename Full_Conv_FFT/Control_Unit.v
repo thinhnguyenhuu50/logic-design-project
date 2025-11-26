@@ -126,10 +126,10 @@ AddressFFT #(
 N) GenAddr(
 .step(step),
 .state(state_cnt),
- .Mux1(dif_mode),
+ .Mux1(!dif_mode),
  .Mux2(seq_offset[LOGN])
 , .addr_RAM1(addr_a_next),
- .addr_RAM2(addr_b),
+ .addr_RAM2(addr_b_next),
  .addr_ROM(twiddle_idx)
 );
     // last of stage

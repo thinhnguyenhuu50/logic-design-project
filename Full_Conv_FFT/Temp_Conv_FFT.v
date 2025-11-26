@@ -171,15 +171,7 @@ assign wA = {1'b0, step} & w1;
 assign wB = ({1'b0, step} & w2) << 1;
 assign addr_RAM1 = {Mux2, wA | wB};
 assign addr_RAM2 = {Mux2, wA | wB | w3};
-wire [L-2:0] wROM; 
-genvar i;
-generate 
-    for(i = 0; i < L-1; i=i+1) begin
-        assign wROM[i] = w1[L-2 - i];
-    end
-endgenerate
-
-assign addr_ROM = wROM & step;
+assign addr_ROM = (w1 & step) << state;
 endmodule
 
 module ConvFTT #(
