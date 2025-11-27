@@ -83,19 +83,6 @@ module mux_output #(
     
 endmodule
 
-module mux_swap #(
-    parameter integer TW_W = 32
-)(
-    input  wire signed [TW_W-1:0] cos_in,
-    input  wire signed [TW_W-1:0] sin_in,
-    input  wire swap_en,  
-    output wire signed [TW_W-1:0] cos_out,
-    output wire signed [TW_W-1:0] sin_out
-);
-    assign cos_out = swap_en ? sin_in : cos_in;
-    assign sin_out = swap_en ? cos_in : sin_in;
-endmodule
-
 module rom_twiddle#(
     parameter integer ADDR_W = 5,
     parameter integer TW_W = 32,

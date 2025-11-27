@@ -172,6 +172,7 @@ assign wB = ({1'b0, step} & w2) << 1;
 assign addr_RAM1 = {Mux2, wA | wB};
 assign addr_RAM2 = {Mux2, wA | wB | w3};
 assign addr_ROM = (w1 & step) << state;
+
 endmodule
 
 module ConvFTT #(
@@ -224,7 +225,7 @@ Butterfly_Multiplication_Unit BMU (.data_in1(RRAM1), .data_in2(RRAM2), .factor(R
 //MPW
 Mul_PointWise MPW(.data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
 //Control Unit
-ConvFFT_Control #(.N(N), .M(1)) Control_Unit(
+Control_FFTConv #(.N(N), .M(1)) Control_Unit(
     .clk(clk),
     .rst_n(rst_n),
     .start(start),
