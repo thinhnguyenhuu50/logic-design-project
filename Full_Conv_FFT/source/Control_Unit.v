@@ -430,9 +430,9 @@ localparam S_IFFT_READ   = 4'd8;
 localparam S_IFFT_WRITE  = 4'd9;
 localparam S_OUT         = 4'd10;
 localparam S_DONE        = 4'd11;
-reg [4:0] state;
+reg [3:0] state;
 reg [L + LL - 2:0] counter;
-reg [4:0] next_state;
+reg [3:0] next_state;
 wire [L-2:0] step;
 wire [L + LL - 2 : L-1] stage;
 reg MUX_DIF;
@@ -544,7 +544,7 @@ always @(*) begin
             MUX_out     <= 0;
             MUX_MPW     <= 0;
             done        <= 0;
-            next_state  <= (stage == L-1 & step == N/2)? S_MPW_READ : S_FFTH_READ;
+            next_state  <= (stage == L-1 & step == N/2 - 1)? S_MPW_READ : S_FFTH_READ;
         end
         S_MPW_READ: begin
             MUX_DIF     <= 0;
@@ -616,10 +616,10 @@ always @(*) begin
             enROM       <= 0;
             MUX_BMU     <= 0;       // 0: DIF, 1: DIT
             MUX_in      <= 0;
-            MUX_out     <= 1;
+            MUX_out     <= (counter == N)? 0: 1;
             MUX_MPW     <= 0;
             done        <= 0;
-            next_state  <= (counter == N-1)? S_DONE : S_OUT;
+            next_state  <= (counter == 1)? S_DONE : S_OUT;
         end
         S_DONE: begin
             MUX_DIF     <= 0;
@@ -640,9 +640,14 @@ always @(*) begin
 end
 
 always @(posedge clk or negedge rst_n) begin
-    if(!rst_n) state <= S_IDLE;
-    else state <= next_state;
-    
+    if (!rst_n) begin
+        state <= S_IDLE;
+    end else begin
+        state <= next_state;
+    end
+end
+
+always @(posedge clk) begin    
     case (state)
         S_IDLE: begin
             counter = 0;
@@ -676,12 +681,12 @@ always @(posedge clk or negedge rst_n) begin
         
         end
         S_IFFT_WRITE: begin
-            if(stage == L-1 & step == N/2 - 1) counter <= 0;
+            if(stage == L-1 & step == N/2 - 1) counter <= N;
             else counter <= counter + 1;
         end
         S_OUT: begin
-            if(counter == N-1) counter <= 0;
-            else counter <= counter + 1;
+            if(counter == 1) counter <= 0;
+            else counter <= counter - 1;
         end
         S_DONE: begin
         

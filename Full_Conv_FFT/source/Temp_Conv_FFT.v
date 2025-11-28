@@ -171,7 +171,7 @@ assign wA = {1'b0, step} & w1;
 assign wB = ({1'b0, step} & w2) << 1;
 assign addr_RAM1 = {Mux2, wA | wB};
 assign addr_RAM2 = {Mux2, wA | wB | w3};
-assign addr_ROM = (w1 & step) << state;
+assign addr_ROM = (w1 & step) << m1;
 
 endmodule
 
@@ -180,9 +180,10 @@ parameter integer N = 32
 )(
 input  wire                 clk,
 input  wire                 rst_n,
-input  wire                 start,
+input  wire                 start, // valid input
 input  wire [31:0]          data_in,
-output wire [31:0]          data_out,               
+output wire [31:0]          data_out,
+output                      valid_output,               
 output                      done
 );
 wire [$clog2(2*N)-1:0]      addr_RAM1;
@@ -244,6 +245,7 @@ Control_FFTConv #(.N(N), .M(1)) Control_Unit(
 );
 //Output
 assign data_out = MUX_out? RRAM1[31:0] : 32'b0;
+assign valid_output = MUX_out;
 endmodule 
 
 

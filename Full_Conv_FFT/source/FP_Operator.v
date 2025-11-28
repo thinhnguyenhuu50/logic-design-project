@@ -28,6 +28,8 @@ endmodule
 module Shift_Right(
 input [22:0] in1,
 input [22:0] in2,
+input n_zero1,
+input n_zero2,
 input compare,
 input [4:0] shift,
 output [23:0] out1,
@@ -36,8 +38,8 @@ output [23:0] out2
 wire [23:0] data1;
 wire [23:0] data2;
 wire [23:0] w1;
-assign data1 = {1'b1, in1};
-assign data2 = {1'b1, in2};
+assign data1 = {n_zero1, in1};
+assign data2 = {n_zero2, in2};
 assign w1 = compare? data2 : data1;
 assign out2 = compare? data1 : data2;
 assign out1 = w1 >> shift;
@@ -111,7 +113,7 @@ assign great_exponent = compare? in1[30:23] : in2[30:23];
 assign sign1 = compare? in2[31] : in1[31];
 assign sign2 = compare? in1[31] : in2[31];
 Exponent_Difference A0(.in1(in1[30:23]), .in2(in2[30:23]), .shift(shift_right), .compare(compare));
-Shift_Right A1(.in1(in1[22:0]), .in2(in2[22:0]), .compare(compare), .shift(shift_right), .out1(w1), .out2(w2));
+Shift_Right A1(.in1(in1[22:0]), .in2(in2[22:0]), .n_zero1( ~(!in1[30:23])), .n_zero2( ~(!in2[30:23])), .compare(compare), .shift(shift_right), .out1(w1), .out2(w2));
 RTL_ALU_Add A2(.sign1(sign1), .in1(w1), .sign2(sign2), .in2(w2), .out(w3));
 Rounding_Normalize A3(.data_in(w3), .great_exponent(great_exponent), .data_out(data_out));
 endmodule
