@@ -1,89 +1,214 @@
 \NeedsTeXFormat{LaTeX2e}
-% \RequirePackage{expl3}
-
 \ProvidesClass{hcmut_report}
 
 \DeclareOption*{\PassOptionsToClass{\CurrentOption}{article}}
 \ProcessOptions\relax
-\LoadClass[a4paper]{article}
+\LoadClass{article}
 
-% Set up font
-% \RequirePackage[fontsize=12pt]{scrextend}
-% \RequirePackage[utf8]{vntex}
-% \RequirePackage[T5]{fontenc}
-% \RequirePackage{mathptmx} % Apply Times New Roman font
-\usepackage{fontspec}
-\usepackage{float}
-\setmainfont{Times New Roman}
-\RequirePackage{anyfontsize,amsmath,amssymb} % Fonts for math environment
-\RequirePackage[vietnamese=nohyphenation]{hyphsubst} % Ignore a warning
-\RequirePackage[vietnamese]{babel} % Support Vietnamese text
-% \RequirePackage{lmodern}
+% ========================================
+% Package Loading
+% ========================================
 
-% Packages
-\RequirePackage{fancyhdr,hyperref}
-\RequirePackage[super,square,sort]{natbib}
-\RequirePackage{tikz}
-\usetikzlibrary{calc,shapes,arrows,positioning}
-\RequirePackage{pgffor} % For loops
-\RequirePackage{xstring} % For string manipulation
+% Font and encoding
+\RequirePackage{fontspec}
+
+% Page layout and geometry
+\RequirePackage[paper=a4paper,margin=2cm,includeheadfoot=true,headheight=40pt]{geometry}
 \RequirePackage[absolute,overlay]{textpos}
-\setlength{\TPVertModule}{1cm}  % Set vertical measurement units to cm
-\setlength{\TPHorizModule}{1cm}  % Set horizontal measurement units to cm
-\RequirePackage{lastpage}
-\RequirePackage{tabularx}
+
+% Mathematics packages
+\RequirePackage{amsmath, amsfonts, amssymb, amsthm}
+
+% Graphics and figures
+\RequirePackage{graphicx}
+\RequirePackage{float}
+\floatplacement{table}{!htbp}
+\floatplacement{figure}{!htbp}
+\RequirePackage{caption}
+\RequirePackage{subcaption}
+
+% Tables
+\RequirePackage{booktabs}
 \RequirePackage{makecell}
 \RequirePackage{longtable}
 \RequirePackage{adjustbox}
 \RequirePackage{array}
+\RequirePackage{siunitx}
+\sisetup{detect-mode, group-digits=false} 
+\RequirePackage{tabularray}
+\UseTblrLibrary{booktabs} 
+
+% Colors and boxes
+\RequirePackage{xcolor}
 \RequirePackage{tcolorbox}
-\RequirePackage{placeins}
+
+% TikZ for graphics
+\RequirePackage{tikz}
+\usetikzlibrary{calc,shapes,arrows,positioning}
+
+% Lists and formatting
 \RequirePackage{enumitem}
+\RequirePackage{placeins}
+\RequirePackage{parskip}
+
+% Headers, footers, and references
+\RequirePackage{fancyhdr}
+\RequirePackage{hyperref}
+\RequirePackage{lastpage}
+\RequirePackage{minted} % This should appear before csquotes to avoid conflicts
+\RequirePackage{csquotes}
+\RequirePackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{references.bib}
+
+% Utility packages
+\RequirePackage{pgffor} % For loops
+\RequirePackage{xstring} % For string manipulation
 \RequirePackage{multicol}
 \RequirePackage{stackrel}
-\RequirePackage{xcolor}
+\RequirePackage{hyphenat}
+\RequirePackage[english]{babel}
 
-% Some packages that seem pretty redundant
-\RequirePackage{geometry,graphicx,indentfirst,setspace}
-\RequirePackage{booktabs}
-\RequirePackage{caption,subcaption}
+% Configure textpos
+\setlength{\TPVertModule}{1cm}  % Set vertical measurement units to cm
+\setlength{\TPHorizModule}{1cm}  % Set horizontal measurement units to cm
 
-\RequirePackage{fancyhdr,hyperref}
-\RequirePackage[super,square,sort]{natbib}
+\linespread{1.4}
+\setlength{\parindent}{0pt}
 
-% Indentation
-\setlength{\parindent}{20pt}
+\ExplSyntaxOn
+% Month name handler using LaTeX3
+\cs_new:Npn \__hcmut_month_name: {
+  \int_case:nn { \month } {
+    {1} {January}
+    {2} {February}
+    {3} {March}
+    {4} {April}
+    {5} {May}
+    {6} {June}
+    {7} {July}
+    {8} {August}
+    {9} {September}
+    {10} {October}
+    {11} {November}
+    {12} {December}
+  }
+}
+\cs_new_eq:NN \Month \__hcmut_month_name:
 
-% Define some default names and a corresponding command to update them
-\newcommand{\@upperuniname}{Vietnam National University Ho Chi Minh City}
-\newcommand{\upperuniname}[1]{\renewcommand{\@upperuniname}{#1}}
+% Define document metadata using LaTeX3 token lists
+\tl_new:N \l__hcmut_upperuniname_tl
+\tl_new:N \l__hcmut_uniname_tl
+\tl_new:N \l__hcmut_deptname_tl
+\tl_new:N \l__hcmut_coursename_tl
+\tl_new:N \l__hcmut_classname_tl
+\tl_new:N \l__hcmut_reporttype_tl
+\tl_new:N \l__hcmut_reportplace_tl
+\tl_new:N \l__hcmut_reporttime_tl
+\tl_new:N \l__hcmut_footerinfo_tl
+\tl_new:N \l__hcmut_advisor_tl
+\tl_new:N \l__hcmut_student_tl
 
-\newcommand{\@uniname}{Ho Chi Minh City University of Technology}
-\newcommand{\uniname}[1]{\renewcommand{\@uniname}{#1}}
+% Set default values
+\tl_set:Nn \l__hcmut_upperuniname_tl {Vietnam~National~University~-~Ho~Chi~Minh~City}
+\tl_set:Nn \l__hcmut_uniname_tl {Ho~Chi~Minh~City~University~of~Technology}
+\tl_set:Nn \l__hcmut_deptname_tl {\textbf{Faculty~of~Computer~Science~and~Engineering}}
+\tl_set:Nn \l__hcmut_coursename_tl {Course~name}
+\tl_set:Nn \l__hcmut_classname_tl {Class~name}
+\tl_set:Nn \l__hcmut_reporttype_tl {Assignment~Report}
+\tl_set:Nn \l__hcmut_reportplace_tl {Ho~Chi~Minh~City}
+\tl_set:Nn \l__hcmut_reporttime_tl {\Month\c_space_tl\int_use:N\year}
+\tl_set:Nn \l__hcmut_footerinfo_tl {Computer~Architecture~Assignment~Report~-~Semester~XXX}
 
-\newcommand{\@deptname}{Faculty of Computer Science and Engineering}
-\newcommand{\deptname}[1]{\renewcommand{\@deptname}{#1}}
+% Title token list
+\tl_new:N \l__hcmut_title_tl
+\tl_set:Nn \l__hcmut_title_tl {Report~title}
 
-\newcommand{\@coursename}{Course name}
-\newcommand{\coursename}[1]{\renewcommand{\@coursename}{#1}}
+% User-facing commands to set values
+\NewDocumentCommand{\upperuniname}{m}{\tl_set:Nn \l__hcmut_upperuniname_tl {#1}}
+\NewDocumentCommand{\uniname}{m}{\tl_set:Nn \l__hcmut_uniname_tl {#1}}
+\NewDocumentCommand{\deptname}{m}{\tl_set:Nn \l__hcmut_deptname_tl {#1}}
+\NewDocumentCommand{\coursename}{m}{\tl_set:Nn \l__hcmut_coursename_tl {#1}}
+\NewDocumentCommand{\classname}{m}{\tl_set:Nn \l__hcmut_classname_tl {#1}}
+\NewDocumentCommand{\reporttype}{m}{\tl_set:Nn \l__hcmut_reporttype_tl {#1}}
+\NewDocumentCommand{\reportplace}{m}{\tl_set:Nn \l__hcmut_reportplace_tl {#1}}
+\NewDocumentCommand{\reporttime}{m}{\tl_set:Nn \l__hcmut_reporttime_tl {#1}}
+\NewDocumentCommand{\footerinfo}{m}{\tl_set:Nn \l__hcmut_footerinfo_tl {#1}}
+\RenewDocumentCommand{\title}{m}{\tl_set:Nn \l__hcmut_title_tl {#1}}
 
-\newcommand{\@reporttype}{Assignment Report}
-\newcommand{\reporttype}[1]{\renewcommand{\@reporttype}{#1}}
-
-\title{Report title}
-
-% More arguments: top, bottom, left, right
-\geometry{
-  paper=a4paper,
-  margin=2cm,
-  includeheadfoot=true,
-  headheight=40pt
+% Advisor command - processes multi-line verbatim input
+\NewDocumentCommand{\advisor}{+v}{
+  \seq_set_split:Nnn \l_tmpa_seq { \obeyedline } {#1}
+  \seq_remove_all:Nn \l_tmpa_seq {}
+  \tl_set:Nx \l__hcmut_advisor_tl {& \seq_use:Nn \l_tmpa_seq {} & \\}
 }
 
-\onehalfspacing
+% Student command - processes multi-line comma-separated verbatim input
+\NewDocumentCommand{\student}{+v}{
+  \seq_set_split:Nnn \l_tmpa_seq { \obeyedline } {#1}
+  \seq_remove_all:Nn \l_tmpa_seq {}
+  \tl_clear:N \l__hcmut_student_tl
+  \seq_map_inline:Nn \l_tmpa_seq {
+    \seq_set_split:Nnn \l_tmpb_seq { , } {##1}
+    \tl_put_right:Nx \l__hcmut_student_tl { & \seq_use:Nn \l_tmpb_seq { & } \\}
+  }
+}
+
+\NewDocumentCommand{\coverpage}{}{
+  \begin{tikzpicture}[overlay,remember~picture]
+    \draw [line~width=3pt]
+    ($ (current~page.north~west) + (2.5cm,-1.5cm) $)
+    rectangle
+    ($ (current~page.south~east) + (-1.5cm,1.5cm) $);
+    \draw [line~width=0.5pt]
+    ($ (current~page.north~west) + (2.6cm,-1.6cm) $)
+    rectangle
+    ($ (current~page.south~east) + (-1.6cm,1.6cm) $);
+  \end{tikzpicture}
+
+  \pagestyle{empty}
+
+  \vspace*{-3\baselineskip}
+  \begin{center}
+    \text_uppercase:n {\tl_use:N \l__hcmut_upperuniname_tl}\\
+    \text_uppercase:n {\tl_use:N \l__hcmut_uniname_tl}\\
+    \text_uppercase:n {\tl_use:N \l__hcmut_deptname_tl}\\
+    \vfill
+    \includegraphics[scale=0.4]{images/hcmut.png}
+    \vfill
+    \bfseries
+    \begin{tabular}{c}
+      \large\tl_use:N \l__hcmut_coursename_tl\\
+      \midrule
+      \Large\tl_use:N \l__hcmut_reporttype_tl\\
+      {}\\
+      \linespread{1}\selectfont
+      \LARGE\parbox[c]{0.8\linewidth}{\centering \tl_use:N \l__hcmut_title_tl}\\
+      \bottomrule
+    \end{tabular}
+    \vfill
+    \large \tl_use:N \l__hcmut_classname_tl
+    \vfill
+    \mdseries
+    \begin{tabular}{llr}
+      Advisor(s): \tl_use:N \l__hcmut_advisor_tl
+      Student(s): \tl_use:N \l__hcmut_student_tl
+    \end{tabular}
+    \vfill
+    \begin{tikzpicture}[overlay, remember~picture]
+      \node at ($(current~page.south) + (0cm, 2cm)$) [anchor=south, text~width=20cm, align=center] {
+        \text_uppercase:n {\tl_use:N \l__hcmut_reportplace_tl,~\tl_use:N \l__hcmut_reporttime_tl}
+      };
+    \end{tikzpicture}
+  \end{center}
+  \newpage
+  \tableofcontents
+  \newpage
+  \pagestyle{fancy}
+  \setcounter{page}{1}
+}
+
+% Prevent underfull vbox warnings
 \raggedbottom
-% Controls row height in tables
-% \renewcommand{\arraystretch}{1.3}
 
 % Set depth of numbering for sections and table of contents
 \setcounter{secnumdepth}{4}
@@ -96,161 +221,54 @@
 
 \AtBeginDocument{\renewcommand*\bibname{References}}
 
+% Configure hyperlink colors and styles
 \hypersetup{
   colorlinks=true,
   linkcolor=black,
-  citecolor=red,
+  citecolor=blue,
   urlcolor=blue
 }
 
-% Set up fancyhdr
-% Line
-\renewcommand{\headrulewidth}{0.3pt} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% Header and Footer Configuration %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\renewcommand{\headrulewidth}{0.3pt}
 \renewcommand{\footrulewidth}{0.3pt}
-\linespread{1}
 \pagestyle{fancy}
 \fancyhf{}
 
 \if@twoside
-    \fancyhead[LO]{
-        \bfseries
-        \begin{tabular}{rl}
-        \begin{picture}(25pt,15pt)
-            \put(0,-8pt){\includegraphics[width=8mm, height=8mm]{graphics/hcmut.png}}
-        \end{picture}&
-        \begin{tabular}{l}
-            \ttfamily TRƯỜNG ĐẠI HỌC BÁCH KHOA - ĐHQG HCM \\
-            \ttfamily \@deptname \\
-        \end{tabular}
-        \end{tabular}
-    }
-    \fancyhead[RE]{
-        \bfseries
-        \begin{tabular}{rl}
-        \begin{tabular}{r}
-            \ttfamily TRƯỜNG ĐẠI HỌC BÁCH KHOA - ĐHQG HCM \\
-            \ttfamily \@deptname \\
-        \end{tabular}
-        \begin{picture}(25pt,15pt)
-            \put(0,-8pt){\includegraphics[width=8mm, height=8mm]{graphics/hcmut.png}}
-        \end{picture}
-        \end{tabular}
-    }
+\fancyhead[LO]{
+  \bfseries
+  \raisebox{-8pt}{\includegraphics[scale=0.08]{images/hcmut.png}}
+  \begin{tabular}{l}
+    \ttfamily \tl_use:N \l__hcmut_uniname_tl \\
+    \ttfamily \tl_use:N \l__hcmut_deptname_tl \\
+  \end{tabular}
+}
+\fancyhead[RE]{
+  \bfseries
+  \begin{tabular}{r}
+    \ttfamily \tl_use:N \l__hcmut_uniname_tl \\
+    \ttfamily \tl_use:N \l__hcmut_deptname_tl \\
+  \end{tabular}
+  \raisebox{-8pt}{\includegraphics[scale=0.08]{images/hcmut.png}}
+}
+\fancyfoot[LO]{\scriptsize \ttfamily Page~\thepage/\pageref{LastPage}}
+\fancyfoot[RO]{\scriptsize \ttfamily \tl_use:N \l__hcmut_footerinfo_tl}
+\fancyfoot[LE]{\scriptsize \ttfamily \tl_use:N \l__hcmut_footerinfo_tl}
+\fancyfoot[RE]{\scriptsize \ttfamily Page~\thepage/\pageref{LastPage}}
 \else
-    \fancyhead[R]{
-        \bfseries
-        \begin{tabular}{rl}
-        \begin{tabular}{r}
-            \ttfamily\@uniname \\
-            \ttfamily\@deptname \\
-        \end{tabular}
-        \begin{picture}(25pt,15pt)
-            \put(0,-8pt){\includegraphics[width=20pt]{graphics/hcmut.png}}
-        \end{picture}
-        \end{tabular}
-    }
+\fancyhead[R]{
+  \bfseries
+  \begin{tabular}{r}
+    \ttfamily \tl_use:N \l__hcmut_uniname_tl \\
+    \ttfamily \tl_use:N \l__hcmut_deptname_tl \\
+  \end{tabular}
+  \raisebox{-8pt}{\includegraphics[scale=0.08]{images/hcmut.png}}
+}
+\fancyfoot[L]{\scriptsize \ttfamily Page~\thepage/\pageref{LastPage}}
+\fancyfoot[R]{\scriptsize \ttfamily \tl_use:N \l__hcmut_footerinfo_tl}
 \fi
-
-\fancyfoot[LO]{\scriptsize \ttfamily Trang \thepage/\pageref{LastPage}}
-\fancyfoot[RO]{\scriptsize \ttfamily Báo cáo Bài tập lớn Kiến trúc máy tính - HK242}
-\fancyfoot[LE]{\scriptsize \ttfamily Báo cáo Bài tập lớn Kiến trúc máy tính - HK242}
-\fancyfoot[RE]{\scriptsize \ttfamily Trang \thepage/\pageref{LastPage}}
-%------------------------------------------------------------------------------------------------------------------------%
-\tcbset {
-  base/.style={
-    arc=0mm, 
-    bottomtitle=0.5mm,
-    boxrule=0mm,
-    colbacktitle=black!10!white, 
-    coltitle=black, 
-    fonttitle=\bfseries, 
-    left=2.5mm,
-    leftrule=1mm,
-    right=3.5mm,
-    title={#1},
-    toptitle=0.75mm, 
-  }
-}
-
-\definecolor{brandblue}{rgb}{0.34, 0.7, 1}
-\newtcolorbox{mainbox}[2]{
-  colframe=brandblue, 
-  base={#1},
-  equal height group=#2
-}
-%------------------------------------------------------------------------------------------------------------------------%
-\newcommand{\coverpage}{
-    
-    \begin{tikzpicture}[overlay,remember picture]
-        \draw [line width=3pt]        
-            ($ (current page.north west) + (2.5cm,-1.5cm) $)
-            rectangle
-            ($ (current page.south east) + (-1.5cm,1.5cm) $);        
-        \draw [line width=0.5pt]
-            ($ (current page.north west) + (2.6cm,-1.6cm) $)
-            rectangle
-            ($ (current page.south east) + (-1.6cm,1.6cm) $);
-    \end{tikzpicture}
-
-    \pagestyle{empty}
-
-    \vspace*{-3\baselineskip}
-    \begin{center}
-        \MakeUppercase{\@upperuniname}
-
-        \MakeUppercase{\@uniname}
-
-        \MakeUppercase{\@deptname}
-        \vfill
-        \includegraphics[scale=0.4]{graphics/hcmut.png}
-        \vfill
-        \bfseries
-        \begin{tabular}{c}
-        \large\@coursename                                 \\
-        {}                                                 \\
-        \midrule                                           \\
-        {}                                                 \\
-        \Large\@reporttype                               \\
-        {}                                                 \\
-        \LARGE\parbox[c]{0.8\linewidth}{\centering \@title} \\
-        {}                                                 \\
-        \bottomrule
-        \end{tabular}
-        \vfill
-        \large LỚP TN01 -- HK242
-        \vfill
-        \mdseries
-        \begin{tabular}{llr}
-            Giảng viên hướng dẫn: \@advisor  
-            Sinh viên thực hiện: \@student  
-        \end{tabular}
-        \vfill
-        \begin{textblock}{10}[0.5,0.5](10.5,27)
-            \MakeUppercase{Thành phố Hồ Chí Minh, tháng 5/2025}
-        \end{textblock}
-    \end{center}
-}
-
-\ExplSyntaxOn 
-\NewDocumentCommand{\advisor}{+v}{
-    \seq_set_split:Nnn \l_tmpa_seq { \obeyedline } {#1}    
-    \seq_remove_all:Nn \l_tmpa_seq {}
-    
-    \tl_const:Ne \l_advisor_name_tl {& \seq_use:Nn \l_tmpa_seq {} & \\}   
-
-    \newcommand{\@advisor}{\tl_use:N \l_advisor_name_tl}    
-}
-
-\NewDocumentCommand{\student}{+v}{
-    \seq_set_split:Nnn \l_tmpa_seq { \obeyedline } {#1}
-    \seq_remove_all:Nn \l_tmpa_seq {}
-
-    \tl_clear_new:N \l_student_list_tl    
-
-    \seq_map_inline:Nn \l_tmpa_seq {
-        \seq_set_split:Nnn \l_tmpb_seq { , } {##1}        
-        \tl_put_right:Ne \l_student_list_tl { & \seq_use:Nn \l_tmpb_seq { & } \\}        
-    }    
-    \newcommand{\@student}{\tl_use:N \l_student_list_tl}
-}
 \ExplSyntaxOff

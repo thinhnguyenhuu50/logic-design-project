@@ -1,59 +1,48 @@
-\NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{codespace}
 
-\RequirePackage[framemethod=tikz]{mdframed}
+\RequirePackage{fonts}
 \RequirePackage{xcolor}
-\RequirePackage{minted}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{minted,breakable}
 
-% Import fonts
-\newfontfamily\GoudySansBlack[Path=./fonts/]{Goudy_Sans_Pro_Black.otf}[NFSSFamily=gsb]
-% \newfontfamily\LucidaFax[Path=./fonts/lcd/]{LFAX.TTF}[NFSSFamily=lcd]
-\newfontfamily\LucidaFax[
-  Path=./fonts/lcd/,
-  NFSSFamily=lcd,
-  Extension = .TTF,
-  UprightFont = LFAX.TTF,
-  BoldFont = LFAXD.TTF,
-  ItalicFont = LFAXI.TTF,
-  BoldItalicFont = LFAXDI.TTF,
-  ]{LFAX.TTF}
+% Define colors
+\definecolor{cyan}{cmyk}{1,0,0,0}
 
-% Adjust the number of lines in minted code blocks
-\renewcommand{\theFancyVerbLine}{\textcolor[RGB]{114, 114, 114}{\normalsize\GoudySansBlack\arabic{FancyVerbLine}}}
-
-\mdfsetup{
-  leftline=false,
-  rightline=false,
-  nobreak=false,
-  linecolor=cyan,
-  linewidth=0.6pt,
-  innerleftmargin=40pt
+% Customize line number style
+\renewcommand{\theFancyVerbLine}{%
+  \goudysans\textcolor[RGB]{114, 114, 114}{\arabic{FancyVerbLine}}%
 }
 
-\surroundwithmdframed{minted}
-
-\usemintedstyle{default}
 \setminted{
+  fontfamily=lcd,
+  linenos,
+  numbersep=8pt,
+  baselinestretch=1.2,
+  %
+  autogobble,
   fontsize=auto,
-  linenos=true,
-  numbersep=20pt,
-  numbers=left,
-  autogobble=true,
-  breaklines=true,
-  breaksymbolleft=\textcolor{red}{$\blacktriangledown$},
-  breaksymbolright=\textcolor{red}{$\blacktriangledown$},
-  escapeinside=||,
-  mathescape=false,
-  tabsize=4,
-  baselinestretch=0.8,
-  fontfamily=lcd
+  breaklines,
+  breakanywhere,
+  breaksymbolleft=\raisebox{0.35ex}{\tiny\textcolor{red}{\ensuremath{\hookrightarrow}}},
+  breaksymbolindent=0pt,
+  breaksymbolsepleft=5pt,
+  style=abap,
 }
 
-% Functionality
-\newenvironment{code}{
-  \VerbatimEnvironment%        
-  \begin{minted}{gas}%
-}
-{
-    \end{minted}%  
+\newtcblisting{code}[2][]{
+  listing engine=minted,
+  minted language=#2,
+  minted options={#1},
+  breakable,
+  before skip=\baselineskip,
+  after skip=\baselineskip,
+  left=20pt,
+  right=10pt,
+  top=8pt,
+  bottom=8pt,
+  boxrule=0.6pt,
+  colframe=cyan!75!black,
+  colback=cyan!5!white,
+  arc=4pt,
+  listing only,
 }

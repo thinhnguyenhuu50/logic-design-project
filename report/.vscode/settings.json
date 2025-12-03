@@ -21,5 +21,6 @@
 			],
 			"env": {}
 		}
-    ]
+    ],
+	"latex-workshop.latex.outDir": "%DIR%/build",
 }
