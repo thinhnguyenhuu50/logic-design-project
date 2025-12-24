@@ -58,7 +58,9 @@ assign w8 = control? w7 : w3;
 assign data_out2 = control? w9 : w7;
 endmodule
 
-module Mul_PointWise(
+module Mul_PointWise #(
+    parameter integer N = 32
+)(
 input                   clk,
 input wire [63:0]       data_in1,
 input wire [63:0]       data_in2,
@@ -66,7 +68,7 @@ output wire [63:0]      data_out
 );
 wire [63:0] w1;
 Complex_Mul M0(.clk(clk), .data_in1(data_in1), .data_in2(data_in2), .data_out(w1));
-FP_Complex_Divide_N M1(.clk(clk), .data_in(w1), .data_out(data_out));
+FP_Complex_Divide_N #(.N(N)) M1(.clk(clk), .data_in(w1), .data_out(data_out));
 endmodule
 
 module ROM_device(
@@ -83,107 +85,6 @@ tw_factor <= w1;
 end
 
 endmodule
-
-// module Temp_Conv_FFT #(
-//     parameter integer N = 32,
-//     parameter integer M = 2,
-//     localparam integer ADDR_WIDTH_RAM = $clog2(2*N),
-//     localparam integer ADDR_WIDTH_ROM = $clog2(N)
-// ) (
-// input [31:0] data_in,
-// input clk,
-// //Control Unit
-// input [ADDR_WIDTH_RAM-1:0] addr_RAM1,
-// input [ADDR_WIDTH_RAM-1:0] addr_RAM2,
-// input [ADDR_WIDTH_ROM-1:0] addr_ROM,
-// input enRAM1,
-// input enRAM2,
-// input enROM,
-// input MUX_BMU,  //0: DIF, 1: DIT
-// input MUX_in,   //0: Not Write Input into RAM, 1: Have
-// input MUX_out,  //0: Ouput = 0, 1: Output = Result
-// input MUX_MPW,  //0: Write Result FFT int RAM, 1: of Multiplication PointWise
-// input enBuffer_RAM,
-// input enBuffer_ROM,
-// input enBuffer_BMU,
-// input loadBuffer_BMU,
-// //OUTPUT
-// output [31:0] data_out
-// );
-// //RAM
-// wire [63:0] WRAM1;
-// wire [63:0] WRAM2;
-// wire [63:0] RRAM1;
-// wire [63:0] RRAM2;
-// wire [63:0] tempWRAM;
-// localparam integer IgnorROM = 8 - ADDR_WIDTH_ROM;
-// wire [IgnorROM-1:0] zero_addr_ROM;
-// assign zero_addr_ROM = 0;
-// wire [63:0] RROM;
-// wire [63:0] OutMPW;
-// //BufferRAM
-// wire [63:0] BufferRAM_out1 [0:M-1];
-// wire [63:0] BufferRAM_out2 [0:M-1];
-// wire [M-1:0] tempBufferRAM1 [0:63];
-// wire [M-1:0] tempBufferRAM2 [0:63];
-// //BufferROM
-// wire [63:0] BufferROM_out [0:M-1];
-// wire [M-1:0] tempBufferROM [0:63];
-// //BufferBMU
-// wire [63:0] BufferBMU_out1;
-// wire [63:0] BufferBMU_out2;
-// wire [M-1:0] tempBufferBMU1 [0:63];
-// wire [M-1:0] tempBufferBMU2[0:63];
-// //BMU
-// wire [63:0] BMU_out1 [0:M-1];
-// wire [63:0] BMU_out2 [0:M-1];
-
-// assign tempWRAM = MUX_MPW? OutMPW : BufferBMU_out1;
-// assign WRAM1 = MUX_in ? {32'b0, data_in} : tempWRAM;
-// assign WRAM2 = BufferBMU_out2;
-// RAM #(.DATA_WIDTH(64), .MEM_DEPTH(2*N)) RAM_Dual_Port (.data_a(WRAM1), .addr_a(addr_RAM1), .we_a(enRAM1), .q_a(RRAM1), .data_b(WRAM2), .addr_b(addr_RAM2), .we_b(enRAM2), .q_b(RRAM2), .clk(clk));
-// //ROM
-
-// rom_twiddle_top ROM (.en(enROM), .tw_idx({addr_ROM, zero_addr_ROM}), .tw_factor(RROM));
-// //MPW
-
-// Mul_PointWise MPW(.data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
-// //Output
-// assign data_out = MUX_out? RRAM1[31:0] : 32'b0;
-
-// genvar i, j;
-
-// generate
-// for(j=0; j < 64; j=j+1) begin
-//     //BufferRAM
-//     SIPO #(M) BufferRAM1 (.clk(clk), .enable(enBuffer_RAM), .serial_in(RRAM1[j]), .parallel_out(tempBufferRAM1[j]));
-//     SIPO #(M) BufferRAM2 (.clk(clk), .enable(enBuffer_RAM), .serial_in(RRAM2[j]), .parallel_out(tempBufferRAM2[j]));
-//     //BufferROM
-//     SIPO #(M) BufferROM (.clk(clk), .enable(enBuffer_ROM), .serial_in(RROM[j]), .parallel_out(tempBufferROM[j]));
-//     //bufferBMU
-//     PISO #(M) BufferBMU1 (.clk(clk), .load_en(loadBuffer_BMU), .shift_en(enBuffer_BMU), .data_in(tempBufferBMU1[j]), .serial_out(BufferBMU_out1[j]));
-//     PISO #(M) BufferBMU2 (.clk(clk), .load_en(loadBuffer_BMU), .shift_en(enBuffer_BMU), .data_in(tempBufferBMU2[j]), .serial_out(BufferBMU_out2[j]));
-//     for (i = 0; i < M; i = i + 1) begin
-//         //BufferRAM
-//         assign BufferRAM_out1[i][j] = tempBufferRAM1[j][i];
-//         assign BufferRAM_out2[i][j] = tempBufferRAM2[j][i];
-//         //BufferROM
-//         assign BufferROM_out[i][j] = tempBufferROM[j][i];
-//         //BufferBMU
-//         assign tempBufferBMU1[j][i] = BMU_out1[i][j];
-//         assign tempBufferBMU2[j][i] = BMU_out2[i][j];
-//     end
-// end
-// endgenerate
-
-// generate
-//     for (i = 0; i < M; i = i + 1) begin
-//         //BMU
-//         Butterfly_Multiplication_Unit BMU (.data_in1(BufferRAM_out1[i]), .data_in2(BufferRAM_out2[i]), .factor(BufferROM_out[i]), .control(MUX_BMU), .data_out1(BMU_out1[i]), .data_out2(BMU_out2[i]));
-//     end
-// endgenerate
-
-// endmodule
 
 module AddressFFT #(
 parameter integer N = 32,
@@ -268,7 +169,7 @@ ROM_device ROM (.clk(clk), .en(enROM), .tw_idx({addr_ROM, zero_addr_ROM}), .tw_f
 //BMU
 Butterfly_Multiplication_Unit BMU (.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .factor(RROM), .control(MUX_BMU), .data_out1(BMU_out1), .data_out2(BMU_out2));
 //MPW
-Mul_PointWise MPW(.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
+Mul_PointWise #(.N(N)) MPW(.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
 //Control Unit
 Control_FFTConv #(.N(N)) Control_Unit(
     .clk(clk),
