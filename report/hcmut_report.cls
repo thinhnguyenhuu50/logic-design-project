@@ -13,7 +13,7 @@
 \RequirePackage{fontspec}
 
 % Page layout and geometry
-\RequirePackage[paper=a4paper,margin=2cm,includeheadfoot=true,headheight=40pt]{geometry}
+\RequirePackage[paper=a4paper,top=1cm,bottom=1cm,left=2.5cm,right=1.5cm,includeheadfoot=true,headheight=30pt]{geometry}
 \RequirePackage[absolute,overlay]{textpos}
 
 % Mathematics packages
@@ -24,6 +24,7 @@
 \RequirePackage{float}
 \floatplacement{table}{!htbp}
 \floatplacement{figure}{!htbp}
+\floatplacement{algorithm}{!htbp}
 \RequirePackage{caption}
 \RequirePackage{subcaption}
 
@@ -34,9 +35,9 @@
 \RequirePackage{adjustbox}
 \RequirePackage{array}
 \RequirePackage{siunitx}
-\sisetup{detect-mode, group-digits=false} 
+\sisetup{detect-mode, group-digits=false}
 \RequirePackage{tabularray}
-\UseTblrLibrary{booktabs} 
+\UseTblrLibrary{booktabs}
 
 % Colors and boxes
 \RequirePackage{xcolor}
@@ -67,6 +68,7 @@
 \RequirePackage{stackrel}
 \RequirePackage{hyphenat}
 \RequirePackage[english]{babel}
+\RequirePackage[linesnumbered,ruled,vlined]{algorithm2e}
 
 % Configure textpos
 \setlength{\TPVertModule}{1cm}  % Set vertical measurement units to cm
@@ -153,16 +155,44 @@
   }
 }
 
+\definecolor{blueLogo-dark}{RGB}{3, 43, 145}
+\definecolor{blueLogo-light}{RGB}{20, 136, 219}
+
 \NewDocumentCommand{\coverpage}{}{
-  \begin{tikzpicture}[overlay,remember~picture]
-    \draw [line~width=3pt]
-    ($ (current~page.north~west) + (2.5cm,-1.5cm) $)
-    rectangle
-    ($ (current~page.south~east) + (-1.5cm,1.5cm) $);
-    \draw [line~width=0.5pt]
-    ($ (current~page.north~west) + (2.6cm,-1.6cm) $)
-    rectangle
-    ($ (current~page.south~east) + (-1.6cm,1.6cm) $);
+  \newgeometry{top=2cm, bottom=2cm, left=2.5cm, right=1.5cm, includeheadfoot=true, headheight=40pt}
+  \begin{tikzpicture}[remember~picture,overlay,inner~sep=0,outer~sep=0]
+    % --- Coordinate Definitions ---
+    % Define the primary page corners for cleaner math
+    \coordinate (PageNE) at (current~page.north~east);
+    \coordinate (PageNW) at (current~page.north~west);
+    \coordinate (PageSW) at (current~page.south~west);
+    \coordinate (PageSE) at (current~page.south~east);
+
+    % Define the main border anchor points using math offsets instead of xshift/yshift
+    \coordinate (A) at ($(PageNE) + (-1.5, -1.5)$);
+    \coordinate (B) at ($(PageNW) + (2.5, -1.5)$);
+    \coordinate (C) at ($(PageSW) + (2.5, 1.5)$);
+    \coordinate (D) at ($(PageSE) + (-1.5, 1.5)$);
+
+    % --- Drawing Commands ---
+    \draw [blueLogo-dark, ~line~width=4pt] (A) rectangle (C);
+
+    \draw [blueLogo-light, ~line~width=1.5pt]
+    ($(A) + (-0.5, 0.5)$) -- ($(B) + (0.5, 0.5)$) --
+    ($(B) + (0.5, -0.5)$) -- ($(B) + (-0.5, -0.5)$) --
+    ($(C) + (-0.5, 0.5)$) -- ($(C) + (0.5, 0.5)$) --
+    ($(C) + (0.5, -0.5)$) -- ($(D) + (-0.5, -0.5)$) --
+    ($(D) + (-0.5, 0.5)$) -- ($(D) + (0.5, 0.5)$) --
+    ($(A) + (0.5, -0.5)$) -- ($(A) + (-0.5, -0.5)$) -- cycle;
+
+    \draw [blueLogo-light, ~line~width=1.5pt]
+    ($(A) + (0.3, -0.3)$) -- ($(B) + (-0.3, -0.3)$) --
+    ($(B) + (-0.3, 0.3)$) -- ($(B) + (0.3, 0.3)$) --
+    ($(C) + (0.3, -0.3)$) -- ($(C) + (-0.3, -0.3)$) --
+    ($(C) + (-0.3, 0.3)$) -- ($(D) + (0.3, 0.3)$) --
+    ($(D) + (0.3, -0.3)$) -- ($(D) + (-0.3, -0.3)$) --
+    ($(A) + (-0.3, 0.3)$) -- ($(A) + (0.3, 0.3)$) -- cycle;
+
   \end{tikzpicture}
 
   \pagestyle{empty}
@@ -183,6 +213,7 @@
       {}\\
       \linespread{1}\selectfont
       \LARGE\parbox[c]{0.8\linewidth}{\centering \tl_use:N \l__hcmut_title_tl}\\
+      {}\\
       \bottomrule
     \end{tabular}
     \vfill
@@ -201,6 +232,7 @@
     \end{tikzpicture}
   \end{center}
   \newpage
+  \restoregeometry
   \tableofcontents
   \newpage
   \pagestyle{fancy}
@@ -218,6 +250,7 @@
 \AtBeginDocument{\counterwithin{equation}{section}}
 \AtBeginDocument{\counterwithin{table}{section}}
 \AtBeginDocument{\counterwithin{figure}{section}}
+\AtBeginDocument{\counterwithin{algocf}{section}}
 
 \AtBeginDocument{\renewcommand*\bibname{References}}
 
