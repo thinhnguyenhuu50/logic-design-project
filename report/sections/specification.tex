@@ -1,6 +1,98 @@
 \section{Specification}
 \subsection{RAM}
-\subsection{ROM Twiddle Factor}
+\subsection{Twiddle Factor ROM}
+\subsubsection{Twiddle Factor ROM Architecture}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/rom_twiddle_arch.png}
+    \caption{ROM-based twiddle factor storage scheme and reconstruction architecture}
+    \label{fig:rom_twiddle_arch}
+\end{figure}
+
+As illustrated in Fig.~\ref{fig:rom_twiddle_arch}, the proposed twiddle factor generator employs a compressed ROM architecture that exploits the periodicity and symmetry properties of the complex exponential function.
+Instead of storing all $N$ twiddle factors, only sine and cosine values corresponding to the first octant, i.e., the angular range $[0,\pi/4)$, are stored in ROM.
+All remaining twiddle factors are reconstructed through address manipulation, sign inversion, and sine--cosine swapping.
+
+\subsubsection{Twiddle Factor Compression Principle}
+
+The twiddle factor used in FFT butterfly computation is defined as
+\begin{equation}
+W_N^k = e^{-j\frac{2\pi k}{N}} = \cos(\beta) - j\sin(\beta),
+\label{eq:twiddle_def}
+\end{equation}
+where $\beta = \frac{2\pi k}{N}$ denotes the corresponding phase angle.
+
+Due to the periodicity and symmetry of trigonometric functions, the sine and cosine values over the full interval $[0,2\pi)$ can be derived from values within the first octant $[0,\pi/4)$.
+Consequently, only $N/8$ samples of sine and cosine values need to be stored in ROM, resulting in a significant reduction in memory requirements.
+
+\subsubsection{ROM Addressing and Octant-Based Mapping}
+
+As shown in Fig.~\ref{fig:rom_twiddle_arch}, the twiddle index is decomposed into two parts:
+\begin{itemize}
+    \item the most significant bits, which determine the octant of the input angle,
+    \item the least significant bits, which specify the offset within the octant.
+\end{itemize}
+
+When the input angle lies within the first octant $[0,\pi/4)$, the offset bits are directly used as the ROM address.
+For angles outside this range, the ROM address is generated through symmetry-based mirroring, while additional logic applies sign inversion and sine--cosine swapping to reconstruct the correct twiddle factor.
+
+\subsubsection{Symmetrical Mapping of Twiddle Factors}
+
+The mapping between the actual angle $\beta$ and the stored base angle in $[0,\pi/4)$ is summarized in Table~\ref{tab:twiddle_mapping}.
+This table defines how sine and cosine values are reconstructed for all octants using symmetry operations.
+\begin{table}[htbp]
+\centering
+\caption{Symmetrical mapping of twiddle factors}
+\label{tab:twiddle_mapping}
+\begin{tabular}{c|c|c}
+\toprule
+Angle range $\beta$ & Sine value & Cosine value \\
+\midrule
+$0 \sim \pi/4$ &
+$-\sin(\beta)$ &
+$\cos(\beta)$ \\
+
+$\pi/4 \sim \pi/2$ &
+$-\cos(\tfrac{\pi}{2}-\beta)$ &
+$\sin(\tfrac{\pi}{2}-\beta)$ \\
+
+$\pi/2 \sim 3\pi/4$ &
+$-\cos(\beta-\tfrac{\pi}{2})$ &
+$-\sin(\beta-\tfrac{\pi}{2})$ \\
+
+$3\pi/4 \sim \pi$ &
+$-\sin(\pi-\beta)$ &
+$-\cos(\pi-\beta)$ \\
+
+$\pi \sim 5\pi/4$ &
+$\sin(\beta-\pi)$ &
+$-\cos(\beta-\pi)$ \\
+
+$5\pi/4 \sim 3\pi/2$ &
+$\cos(\tfrac{3\pi}{2}-\beta)$ &
+$-\sin(\tfrac{3\pi}{2}-\beta)$ \\
+
+$3\pi/2 \sim 7\pi/4$ &
+$\cos(\beta-\tfrac{3\pi}{2})$ &
+$\sin(\beta-\tfrac{3\pi}{2})$ \\
+
+$7\pi/4 \sim 2\pi$ &
+$\sin(2\pi-\beta)$ &
+$\cos(2\pi-\beta)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:twiddle_mapping} represents the core principle of the proposed ROM twiddle factor generator.
+Rather than storing redundant trigonometric values across the full $2\pi$ range, the architecture reconstructs all required twiddle factors from a single base interval $[0,\pi/4)$.
+
+The operations listed in the table—namely angle reflection, sine--cosine swapping, and sign inversion—are implemented using simple combinational logic.
+As a result, the ROM size is reduced by a factor of eight, while maintaining exact trigonometric relationships and overall numerical accuracy.
+
+The mapping rules defined in Table~\ref{tab:twiddle_mapping} are directly reflected in the ROM architecture shown in Fig.~\ref{fig:rom_twiddle_arch}.
+Specifically, the address generation logic implements angle reflection, while the output multiplexers and sign inversion units apply the symmetry operations required to produce the final sine and cosine values.
+
 \subsection{Butterfly Multiplication Unit}
 \subsubsection{Addition Floating Point Unit}
 
