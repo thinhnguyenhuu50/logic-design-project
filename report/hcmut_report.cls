@@ -61,6 +61,9 @@
 \RequirePackage[backend=biber,style=numeric,sorting=none]{biblatex}
 \addbibresource{references.bib}
 
+\RequirePackage[backend=biber,style=numeric,sorting=none]{biblatex}
+\addbibresource{references.bib}
+
 % Utility packages
 \RequirePackage{pgffor} % For loops
 \RequirePackage{xstring} % For string manipulation

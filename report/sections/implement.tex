@@ -25,24 +25,6 @@ This logic structure minimizes the hardware overhead by avoiding complex ``Read-
 
 This subsection provides a detailed analysis of the implemented Twiddle Factor ROM, including the internal functional blocks, their purposes, and the timing behavior with respect to the system clock. The design follows a memory-efficient architecture based on symmetry reconstruction, while maintaining deterministic timing suitable for FFT pipeline integration.
 
-\subsubsection{Overall Dataflow and Timing Behavior}
-
-The twiddle factor generator is designed as a predominantly combinational datapath, surrounded by synchronous input and output registers at the system level. The operational flow can be summarized as follows:
-\begin{itemize}
-    \item The twiddle index $k$ is updated synchronously on the rising edge of the system clock.
-    \item Address generation, ROM access, and symmetry reconstruction are performed combinationally based on the current index value.
-    \item The reconstructed twiddle factor becomes available within the same clock cycle.
-    \item The final twiddle factor is captured by output registers on the subsequent rising clock edge.
-\end{itemize}
-
-This structure introduces a fixed one-clock-cycle latency from index update to registered output, ensuring clean timing boundaries and compatibility with pipelined FFT architectures.
-
-\subsubsection{Twiddle Index Generation and Clock Dependency}
-
-The twiddle index is generated using a synchronous register driven by the system clock. Upon reset, the index is initialized to zero. On each rising clock edge, the index is incremented by one, producing a new twiddle factor request every cycle.
-
-This synchronous update guarantees that the twiddle index remains stable for the entire clock period, allowing all downstream combinational logic to settle before the next clock edge. An enable signal is also generated synchronously to indicate the validity of the output data.
-
 \subsubsection{Address Mapping Unit}
 
 The address mapping unit converts the intra-octant offset of the twiddle index into a ROM address. Its primary function is to exploit angular symmetry by mapping angles outside the first octant back into the stored range $[0,\pi/4)$.
@@ -96,10 +78,5 @@ This results in a deterministic one-cycle latency and ensures reliable data tran
 A benchmark wrapper is employed to validate the timing behavior of the twiddle factor ROM. It continuously generates sequential twiddle indices, captures the corresponding outputs at each clock cycle, and aggregates the output bits to prevent synthesis tools from optimizing away the ROM logic.
 
 This setup enables accurate observation of ROM access delay, symmetry reconstruction latency, and overall clock-to-output timing behavior.
-
-\subsubsection{Summary}
-
-The implemented Twiddle Factor ROM achieves a compact and efficient design through octant-based compression and symmetry reconstruction. The architecture features combinational ROM access, lightweight reconstruction logic, and registered outputs with a fixed one-cycle latency, making it well suited for high-throughput FFT hardware implementations.
-
 
 
