@@ -1,5 +1,60 @@
 \section{Specification}
 \subsection{RAM}
+
+\subsubsection{Overview}
+The component is a synchronous, \textbf{True Dual-Port Random Access Memory (RAM)}. It facilitates two independent access ports (Port A and Port B), allowing simultaneous read or write operations to a shared memory space within a single clock domain.
+
+\subsubsection{Parameters}
+The design is fully parametrizable to support various storage requirements:
+
+\begin{itemize}
+    \item \textbf{DATA\_WIDTH}: Defines the width of the data bus (default: 64 bits).
+    \item \textbf{MEM\_DEPTH}: Defines the total number of memory entries (default: 64 entries).
+    \item \textbf{ADDR\_WIDTH}: Calculated automatically as $\lceil \log_2(\text{MEM\_DEPTH}) \rceil$ to ensure sufficient addressing bits are allocated.
+\end{itemize}
+
+\subsubsection{Interface}
+The module operates on a single clock signal (\texttt{clk}). The interface definition is detailed in Table \ref{tab:interface}.
+
+\begin{table}[h]
+    \centering
+    \caption{RAM Interface Signals}
+    \label{tab:interface}
+    \vspace{0.2cm}
+    \begin{tabular}{@{}llll@{}}
+        \toprule
+        \textbf{Port Name} & \textbf{Direction} & \textbf{Width} & \textbf{Description} \\ 
+        \midrule
+        \texttt{clk} & Input & 1 & System clock (rising edge triggered). \\
+        \midrule
+        \multicolumn{4}{l}{\textit{Port A}} \\
+        \texttt{data\_a} & Input & \texttt{DATA\_WIDTH} & Data to be written to memory. \\
+        \texttt{addr\_a} & Input & \texttt{ADDR\_WIDTH} & Address for read/write operations. \\
+        \texttt{we\_a} & Input & 1 & Write Enable (High = Write, Low = Read). \\
+        \texttt{q\_a} & Output & \texttt{DATA\_WIDTH} & Data read from memory. \\
+        \midrule
+        \multicolumn{4}{l}{\textit{Port B}} \\
+        \texttt{data\_b} & Input & \texttt{DATA\_WIDTH} & Data to be written to memory. \\
+        \texttt{addr\_b} & Input & \texttt{ADDR\_WIDTH} & Address for read/write operations. \\
+        \texttt{we\_b} & Input & 1 & Write Enable (High = Write, Low = Read). \\
+        \texttt{q\_b} & Output & \texttt{DATA\_WIDTH} & Data read from memory. \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Functional Behavior}
+The RAM operates under the following conditions:
+\begin{itemize}
+    \item \textbf{Synchronous Operation:} All memory transactions occur on the rising edge of \texttt{clk}.
+    \item \textbf{Dual Access:} Port A and Port B operate independently and can be active simultaneously.
+    \item \textbf{Read/Write Modes:}
+    \begin{itemize}
+        \item \textbf{Write Mode (\texttt{we = 1}):} The input data is written to the specified address.
+        \item \textbf{Read Mode (\texttt{we = 0}):} The data at the specified address is registered into the output \texttt{q}.
+    \end{itemize}
+\end{itemize}
+However, simultaneous read and write operations to the same address from different ports will lead to undefined behavior.
+
 \subsection{Twiddle Factor ROM}
 \subsubsection{Twiddle Factor ROM Architecture}
 
