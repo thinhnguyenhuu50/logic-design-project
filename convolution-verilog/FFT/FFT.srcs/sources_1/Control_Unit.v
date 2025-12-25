@@ -163,7 +163,7 @@ module Control_FFTConv #(
                 enRAM1      <= 0;
                 enRAM2      <= 0;
                 enROM       <= 0;
-                MUX_BMU     <= 0;
+                MUX_BMU     <= 1;
                 MUX_in      <= 0;
                 MUX_out     <= 0;
                 MUX_MPW     <= 1;
@@ -178,7 +178,7 @@ module Control_FFTConv #(
                 enRAM1      <= 1;
                 enRAM2      <= 0;
                 enROM       <= 0;
-                MUX_BMU     <= 0;
+                MUX_BMU     <= 1;
                 MUX_in      <= 0;
                 MUX_out     <= 0;
                 MUX_MPW     <= 1;
@@ -242,10 +242,10 @@ module Control_FFTConv #(
                 enROM       <= 0;
                 MUX_BMU     <= 0;
                 MUX_in      <= 0;
-                MUX_out     <= 0;
+                MUX_out     <= 1;
                 MUX_MPW     <= 0;
                 done        <= 1;
-                next_state  <= S_DONE;            
+                next_state  <= S_IDLE;            
             end    
         endcase
     end

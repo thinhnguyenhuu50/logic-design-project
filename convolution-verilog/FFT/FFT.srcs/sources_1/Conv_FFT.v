@@ -25,12 +25,15 @@ module Buffer #(
     endgenerate
 endmodule
 
-module Butterfly_Multiplication_Unit(
+module Butterfly_Multiplication_Unit #(
+    parameter integer N = 32
+)(
 input                       clk,
 input wire [63:0]           data_in1,
 input wire [63:0]           data_in2,
 input wire [63:0]           factor,
 input wire                  control, //0: DIF, 1: DIT
+input wire                  MPW, //0: FFT, 1: MPW
 output wire [63:0]          data_out1,
 output wire [63:0]          data_out2
 );
@@ -43,32 +46,25 @@ wire [63:0] w6;
 wire [63:0] w7;
 wire [63:0] w8;
 wire [63:0] w9;
+wire [63:0] w10;
+wire [63:0] w11;
+wire [63:0] w12;
 
-Buffer #(.WIDTH(64), .CYCLES(5)) Buffer5_0(.clk(clk), .in_data(factor), .out_data(w1));
+Buffer #(.WIDTH(64), .CYCLES(5)) Buffer5_0(.clk(clk), .in_data(w12), .out_data(w1));
 Buffer #(.WIDTH(64), .CYCLES(12)) Buffer12_0(.clk(clk), .in_data(data_in1), .out_data(w2));
 Buffer #(.WIDTH(64), .CYCLES(12)) Buffer12_1(.clk(clk), .in_data(data_in2), .out_data(w3));
 Complex_Sub S0(.clk(clk), .data_in1(data_in1), .data_in2(data_in2), .data_out(w4));
 Complex_Mul M0(.clk(clk), .data_in1(w5), .data_in2(w6), .data_out(w7));
 Complex_Sub S1(.clk(clk), .data_in1(w2), .data_in2(w7), .data_out(w9));
-Complex_Add A0(.clk(clk), .data_in1(w2), .data_in2(w8), .data_out(data_out1));
+Complex_Add A0(.clk(clk), .data_in1(w2), .data_in2(w8), .data_out(w10));
+FP_Complex_Divide_N #(.N(N)) DivN (.clk(clk), .data_in(w7), .data_out(w11));
 
 assign w5 = control? data_in2 : w4;
-assign w6 = control? factor : w1;
+assign w6 = control? w12 : w1;
 assign w8 = control? w7 : w3;
+assign w12 = MPW? data_in1 : factor;
+assign data_out1 = MPW? w11 : w10;
 assign data_out2 = control? w9 : w7;
-endmodule
-
-module Mul_PointWise #(
-    parameter integer N = 32
-)(
-input                   clk,
-input wire [63:0]       data_in1,
-input wire [63:0]       data_in2,
-output wire [63:0]      data_out
-);
-wire [63:0] w1;
-Complex_Mul M0(.clk(clk), .data_in1(data_in1), .data_in2(data_in2), .data_out(w1));
-FP_Complex_Divide_N #(.N(N)) M1(.clk(clk), .data_in(w1), .data_out(data_out));
 endmodule
 
 module ROM_device(
@@ -160,16 +156,16 @@ wire [63:0] BMU_out2;
 //---------------------------------------------------------------------------//
 
 //RAM
-assign tempWRAM = MUX_MPW? OutMPW : BMU_out1;
-assign WRAM1 = MUX_in ? {32'b0, data_in1} : tempWRAM;
+//assign tempWRAM = MUX_MPW? OutMPW : BMU_out1;
+assign WRAM1 = MUX_in ? {32'b0, data_in1} : BMU_out1;
 assign WRAM2 = MUX_in ? {32'b0, data_in2} : BMU_out2;
 RAM #(.DATA_WIDTH(64), .MEM_DEPTH(2*N)) RAM_Dual_Port (.data_a(WRAM1), .addr_a(addr_RAM1), .we_a(enRAM1), .q_a(RRAM1), .data_b(WRAM2), .addr_b(addr_RAM2), .we_b(enRAM2), .q_b(RRAM2), .clk(clk));
 //ROM
 ROM_device ROM (.clk(clk), .en(enROM), .tw_idx({addr_ROM, zero_addr_ROM}), .tw_factor(RROM));
 //BMU
-Butterfly_Multiplication_Unit BMU (.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .factor(RROM), .control(MUX_BMU), .data_out1(BMU_out1), .data_out2(BMU_out2));
+Butterfly_Multiplication_Unit #(.N(N)) ALU (.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .factor(RROM), .control(MUX_BMU), .MPW(MUX_MPW), .data_out1(BMU_out1), .data_out2(BMU_out2));
 //MPW
-Mul_PointWise #(.N(N)) MPW(.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
+//Mul_PointWise #(.N(N)) MPW(.clk(clk), .data_in1(RRAM1), .data_in2(RRAM2), .data_out(OutMPW));
 //Control Unit
 Control_FFTConv #(.N(N)) Control_Unit(
     .clk(clk),
