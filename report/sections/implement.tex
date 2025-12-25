@@ -1,5 +1,26 @@
 \section{Implementation}
 
+\subsection{Implementation of the RAM}
+
+\subsection{Storage Structure}
+The memory core is modeled abstractly as a two-dimensional array of registers. This structure is sized dynamically based on the \texttt{DATA\_WIDTH} and \texttt{MEM\_DEPTH} parameters. The model is specifically designed to allow synthesis tools to infer dedicated hardware Block RAM (BRAM) resources on FPGA targets, ensuring optimal area usage and timing performance compared to distributed logic storage.
+
+\subsection{Parallel Control Logic}
+To achieve True Dual-Port functionality, the design employs two distinct, parallel control processes triggered by the rising edge of the clock. Each process manages the operations of a single port (A or B) independently. Since both processes share access to the same underlying storage array, the component supports simultaneous Read/Read, Read/Write, and Write/Write operations across the two ports.
+
+\subsection{Read/Write Arbitration Logic}
+The internal logic for each port enforces a mutually exclusive operation mode based on the Write Enable (\texttt{we}) signal:
+
+\begin{enumerate}
+    \item \textbf{Write Priority:} When the write enable signal is active, the system prioritizes the storage operation. The data present on the input bus is written directly into the memory array at the specified address.
+    
+    \item \textbf{Output Behavior during Write:} The implementation utilizes a ``Read-Disabled'' (or No-Change) architecture during write cycles. This means that while data is being written to memory, the output data port is \textit{not} updated with the new input nor the old memory content. Instead, it retains the value held from the previous clock cycle.
+    
+    \item \textbf{Read Operation:} Only when the write enable signal is inactive does the system retrieve data from the memory array and update the output register.
+\end{enumerate}
+
+This logic structure minimizes the hardware overhead by avoiding complex ``Read-First'' or ``Write-First'' arbitration circuitry, making it highly efficient for standard buffer and storage applications.
+
 \subsection{Implementation of the Twiddle Factor ROM}
 
 This subsection provides a detailed analysis of the implemented Twiddle Factor ROM, including the internal functional blocks, their purposes, and the timing behavior with respect to the system clock. The design follows a memory-efficient architecture based on symmetry reconstruction, while maintaining deterministic timing suitable for FFT pipeline integration.
