@@ -2,13 +2,13 @@
 
 \subsection{Implementation of the RAM}
 
-\subsection{Storage Structure}
+\subsubsection{Storage Structure}
 The memory core is modeled abstractly as a two-dimensional array of registers. This structure is sized dynamically based on the \texttt{DATA\_WIDTH} and \texttt{MEM\_DEPTH} parameters. The model is specifically designed to allow synthesis tools to infer dedicated hardware Block RAM (BRAM) resources on FPGA targets, ensuring optimal area usage and timing performance compared to distributed logic storage.
 
-\subsection{Parallel Control Logic}
+\subsubsection{Parallel Control Logic}
 To achieve True Dual-Port functionality, the design employs two distinct, parallel control processes triggered by the rising edge of the clock. Each process manages the operations of a single port (A or B) independently. Since both processes share access to the same underlying storage array, the component supports simultaneous Read/Read, Read/Write, and Write/Write operations across the two ports.
 
-\subsection{Read/Write Arbitration Logic}
+\subsubsection{Read/Write Arbitration Logic}
 The internal logic for each port enforces a mutually exclusive operation mode based on the Write Enable (\texttt{we}) signal:
 
 \begin{enumerate}
