@@ -21,62 +21,109 @@ The internal logic for each port enforces a mutually exclusive operation mode ba
 
 This logic structure minimizes the hardware overhead by avoiding complex ``Read-First'' or ``Write-First'' arbitration circuitry, making it highly efficient for standard buffer and storage applications.
 
-\subsection{Implementation of the Twiddle Factor ROM}
+\subsection{Twiddle Factor ROM Design and Implementation}
 
-This subsection provides a detailed analysis of the implemented Twiddle Factor ROM, including the internal functional blocks, their purposes, and the timing behavior with respect to the system clock. The design follows a memory-efficient architecture based on symmetry reconstruction, while maintaining deterministic timing suitable for FFT pipeline integration.
+The twiddle factor ROM is designed to efficiently generate complex exponential coefficients required by FFT butterfly operations while minimizing memory usage.
+Instead of storing the full set of $N$ twiddle factors, the proposed architecture stores sine and cosine values only for the first octant of the unit circle, corresponding to the angular range $[0,\pi/4)$.
+All remaining twiddle factors are reconstructed using symmetry properties of trigonometric functions.
 
-\subsubsection{Address Mapping Unit}
+The twiddle factor is defined as
+\begin{equation}
+W_N^k = e^{-j\frac{2\pi k}{N}} = \cos(\beta) - j\sin(\beta),
+\quad \beta = \frac{2\pi k}{N}.
+\end{equation}
 
-The address mapping unit converts the intra-octant offset of the twiddle index into a ROM address. Its primary function is to exploit angular symmetry by mapping angles outside the first octant back into the stored range $[0,\pi/4)$.
+By exploiting symmetry, only $N/8$ base values are stored in ROM, leading to an eightfold reduction in memory size.
+The complete twiddle factor reconstruction is achieved using address mirroring, sine--cosine swapping, and sign inversion.
 
-This block performs the following operations:
+\subsubsection{Symmetrical Mapping of Sine and Cosine}
+
+Table~\ref{tab:twiddle_mapping} summarizes the symmetry rules used to reconstruct sine and cosine values over the full range $[0,2\pi)$ from the first-octant base interval.
+
+\begin{table}[htbp]
+\centering
+\caption{Symmetrical mapping of twiddle factors}
+\label{tab:twiddle_mapping}
+\begin{tabular}{c|c|c}
+\toprule
+Angle range $\beta$ & $\sin(\beta)$ & $\cos(\beta)$ \\
+\midrule
+$0 \sim \pi/4$ &
+$-\sin(\beta)$ &
+$\cos(\beta)$ \\
+
+$\pi/4 \sim \pi/2$ &
+$-\cos(\tfrac{\pi}{2}-\beta)$ &
+$\sin(\tfrac{\pi}{2}-\beta)$ \\
+
+$\pi/2 \sim 3\pi/4$ &
+$-\cos(\beta-\tfrac{\pi}{2})$ &
+$-\sin(\beta-\tfrac{\pi}{2})$ \\
+
+$3\pi/4 \sim \pi$ &
+$-\sin(\pi-\beta)$ &
+$-\cos(\pi-\beta)$ \\
+
+$\pi \sim 5\pi/4$ &
+$\sin(\beta-\pi)$ &
+$-\cos(\beta-\pi)$ \\
+
+$5\pi/4 \sim 3\pi/2$ &
+$\cos(\tfrac{3\pi}{2}-\beta)$ &
+$-\sin(\tfrac{3\pi}{2}-\beta)$ \\
+
+$3\pi/2 \sim 7\pi/4$ &
+$\cos(\beta-\tfrac{3\pi}{2})$ &
+$\sin(\beta-\tfrac{3\pi}{2})$ \\
+
+$7\pi/4 \sim 2\pi$ &
+$\sin(2\pi-\beta)$ &
+$\cos(2\pi-\beta)$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The mapping rules in Table~\ref{tab:twiddle_mapping} form the theoretical basis of the ROM reconstruction logic and are directly reflected in the Verilog implementation.
+
+\subsubsection{Module-Level Implementation Overview}
+
+Fig.~\ref{fig:rom_twiddle_arch} illustrates the structural organization of the twiddle factor generator.
+The design is composed of several lightweight combinational modules, each responsible for a specific reconstruction step:
+
 \begin{itemize}
-    \item Detection of even or odd octants.
-    \item Direct addressing for even octants.
-    \item Address mirroring for odd octants.
+    \item \textbf{\texttt{mux\_addr} (Address Mapping Unit)}  
+    This module maps the intra-octant offset to a valid ROM address.
+    For odd octants, address mirroring is applied using
+    \[
+    \texttt{rom\_addr} = (N/8) - \texttt{off},
+    \]
+    ensuring that all accesses fall within the first-octant ROM range.
+    This block is purely combinational and introduces no clock latency.
+
+    \item \textbf{\texttt{rom\_twiddle} (Compact Sine/Cosine ROM)}  
+    This module stores precomputed sine and cosine values for angles in $[0,\pi/4)$.
+    The ROM is implemented as a combinational lookup table initialized from external data files.
+    Once the address is stable, the corresponding sine and cosine values propagate directly to the output.
+
+    \item \textbf{\texttt{Inv\_FP} (Sign Inversion Units)}  
+    These modules generate negated sine and cosine values by flipping the IEEE-754 sign bit.
+    This method avoids arithmetic subtraction and significantly reduces hardware complexity.
+    The sign inversion logic is fully combinational.
+
+    \item \textbf{\texttt{mux\_output} (Symmetry Reconstruction Unit)}  
+    Based on the octant index, this module selects between sine and cosine base values,
+    applies optional sign inversion, and performs sine--cosine swapping.
+    The implemented selection logic directly follows the symmetry rules listed in
+    Table~\ref{tab:twiddle_mapping}.
+
+    \item \textbf{\texttt{rom\_twiddle\_top} (Top-Level Twiddle Generator)}  
+    This top-level module integrates all submodules and produces the final complex twiddle factor.
+    Boundary cases, where the offset equals zero, are handled using predefined constants
+    (e.g., $\pm1$, $0$, $\pm\sqrt{2}/2$) to avoid unnecessary ROM access and improve numerical robustness.
 \end{itemize}
 
-The address mapping unit is purely combinational and does not introduce any clock-dependent latency.
+Although all reconstruction logic is combinational, the generated twiddle factor is synchronized at the system level.
+This ensures deterministic timing behavior and seamless integration with the pipelined FFT butterfly units.
 
-\subsubsection{Compact Sine/Cosine ROM}
-
-The compact ROM stores precomputed sine and cosine values corresponding exclusively to angles in the first octant. Each ROM entry contains a pair of IEEE-754 single-precision floating-point values.
-
-The ROM is implemented as a combinational read memory. Once the address is stable, the corresponding sine and cosine values propagate directly to the output without requiring a clock edge, thereby minimizing access latency.
-
-\subsubsection{Sign Inversion Units}
-
-Sign inversion units are employed to reconstruct twiddle factors in octants where sine or cosine values are negative. These units operate by flipping the sign bit of the IEEE-754 floating-point representation.
-
-This approach avoids arithmetic subtraction and significantly reduces hardware complexity. The sign inversion logic is fully combinational and responds immediately to changes in the ROM outputs.
-
-\subsubsection{Output Multiplexing and Symmetry Reconstruction}
-
-The output multiplexing logic performs the final symmetry reconstruction required to generate the correct twiddle factor. Based on the octant index, this block:
-\begin{itemize}
-    \item Selects between sine and cosine base values.
-    \item Applies optional sign inversion.
-    \item Swaps sine and cosine roles when dictated by symmetry rules.
-\end{itemize}
-
-The implemented mapping directly corresponds to the symmetrical twiddle factor mapping table described in the specification section. This block is purely combinational and does not depend on the system clock.
-
-\subsubsection{Boundary Value Handling}
-
-When the intra-octant offset equals zero, the input angle lies exactly on an octant boundary. In this case, the twiddle factor corresponds to known constants such as $\pm1$, $0$, or $\pm \sqrt{2}/2$.
-
-These values are generated locally using predefined constants and selected through combinational logic. This mechanism avoids unnecessary ROM access, reduces latency, and improves numerical robustness.
-
-\subsubsection{Output Registering and Clock Synchronization}
-
-Although the twiddle factor generation is combinational, the final output is registered at the system level. The reconstructed twiddle factor becomes valid shortly after the rising edge that updates the twiddle index and is then captured by output registers on the next rising clock edge.
-
-This results in a deterministic one-cycle latency and ensures reliable data transfer to downstream synchronous FFT butterfly units.
-
-\subsubsection{Benchmark Wrapper and Timing Observation}
-
-A benchmark wrapper is employed to validate the timing behavior of the twiddle factor ROM. It continuously generates sequential twiddle indices, captures the corresponding outputs at each clock cycle, and aggregates the output bits to prevent synthesis tools from optimizing away the ROM logic.
-
-This setup enables accurate observation of ROM access delay, symmetry reconstruction latency, and overall clock-to-output timing behavior.
-
-
+Overall, the proposed ROM design achieves substantial memory reduction while maintaining exact trigonometric correctness,
+making it well suited for high-performance FFT hardware implementations.
