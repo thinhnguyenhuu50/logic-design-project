@@ -70,6 +70,13 @@ The internal logic for each port enforces a mutually exclusive operation mode ba
 This logic structure minimizes the hardware overhead by avoiding complex ``Read-First'' or ``Write-First'' arbitration circuitry, making it highly efficient for standard buffer and storage applications.
 
 \subsection{Twiddle Factor ROM Design and Implementation}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/rom_twiddle_arch.png}
+    \caption{The architecture of ROM twiddle factor}
+    \label{fig:rom_twiddle_arch}
+\end{figure}
+
 
 The twiddle factor ROM is designed to efficiently generate complex exponential coefficients required by FFT butterfly operations while minimizing memory usage.
 Instead of storing the full set of $N$ twiddle factors, the proposed architecture stores sine and cosine values only for the first octant of the unit circle, corresponding to the angular range $[0,\pi/4)$.
@@ -175,3 +182,52 @@ This ensures deterministic timing behavior and seamless integration with the pip
 
 Overall, the proposed ROM design achieves substantial memory reduction while maintaining exact trigonometric correctness,
 making it well suited for high-performance FFT hardware implementations.
+
+\subsection{Arithmetic Logic Unit (ALU)}
+
+The Arithmetic Logic Unit (ALU) serves as the computational core of the system, designed to execute floating-point (FP) arithmetic operations with high throughput. The architecture is fully pipelined to optimize processing speed while maintaining a compact hardware footprint. The ALU design addresses three distinct operational scenarios: 
+\begin{enumerate}
+    \item Radix-2 Decimation-in-Frequency (DIF) Butterfly operation.
+    \item Radix-2 Decimation-in-Time (DIT) Butterfly operation.
+    \item Point-wise Multiplication (MPW) for spectral convolution.
+\end{enumerate}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/ALU_Spec.png}
+    \caption{Block Diagram of Arithmetic Logic Unit (ALU)}
+\end{figure}
+
+\subsubsection*{Data Path Control and Temporal Alignment}
+To support the multi-mode functionality, the datapath employs a network of 64-bit multiplexers (MUX) to dynamically route operands based on the selected operation mode (controlled by signals \texttt{MUX\_BMU} and \texttt{MUX\_MPW}). A critical challenge in pipelined complex arithmetic is ensuring that operands arrive at the arithmetic units (Adders/Multipliers) at the exact same clock cycle. 
+
+To address this, we integrated specific delay buffers (as illustrated in the block diagram) to achieve \textbf{temporal alignment}. These buffers compensate for the latency differences between parallel paths, ensuring the correctness of the algorithm and the integrity of the pipeline stages.
+
+\subsubsection*{Addition Floating Point Unit}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/AddFPSpec.png}
+    \caption{Architecture of Floating Point Adder Unit}
+\end{figure}
+
+\subsubsection*{Multiplication Floating Point Unit}
+
+
+\subsubsection*{Complex Adder Unit}
+
+\subsubsection*{Complex Multiplier Unit}
+
+The design was synthesized and simulated using the Vivado Design Suite with a target clock period of $8\text{ns}$. The latency characterization of the floating-point cores is as follows:
+\begin{itemize}
+    \item \textbf{FP Adder:} 5 clock cycles.
+    \item \textbf{FP Multiplier:} 7 clock cycles.
+\end{itemize}
+
+ regarding the complex multiplier implementation, we evaluated the Gauss multiplication algorithm (which uses 3 real multipliers) against the standard method (which uses 4 real multipliers). Although the Gauss method reduces the number of multipliers, our analysis indicated that the additional pre-adders and post-adders required introduced significant structural complexity and pipeline overhead, which negated the area savings in this specific architecture. Consequently, we opted for the \textbf{standard four-multiplication architecture} to maintain pipeline regularity and control simplicity without compromising the overall system performance.
+
+\subsubsection*{Divider N Unit}
+
+\subsection{Control Unit}
+
+\subsection{Convolution Module}
