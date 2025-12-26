@@ -31,6 +31,13 @@ The internal logic for each port enforces a mutually exclusive operation mode ba
 This logic structure minimizes the hardware overhead by avoiding complex ``Read-First'' or ``Write-First'' arbitration circuitry, making it highly efficient for standard buffer and storage applications.
 
 \subsection{Twiddle Factor ROM Design and Implementation}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.7\textwidth]{images/rom_twiddle_arch.png}
+    \caption{The architecture of ROM twiddle factor}
+    \label{fig:rom_twiddle_arch}
+\end{figure}
+
 
 The twiddle factor ROM is designed to efficiently generate complex exponential coefficients required by FFT butterfly operations while minimizing memory usage.
 Instead of storing the full set of $N$ twiddle factors, the proposed architecture stores sine and cosine values only for the first octant of the unit circle, corresponding to the angular range $[0,\pi/4)$.
