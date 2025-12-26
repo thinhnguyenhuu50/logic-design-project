@@ -95,7 +95,7 @@ The complete twiddle factor reconstruction is achieved using address mirroring, 
 
 Table~\ref{tab:twiddle_mapping} summarizes the symmetry rules used to reconstruct sine and cosine values over the full range $[0,2\pi)$ from the first-octant base interval.
 
-\begin{table}[htbp]
+\begin{table}
 \centering
 \caption{Symmetrical mapping of twiddle factors}
 \label{tab:twiddle_mapping}
@@ -224,7 +224,7 @@ The proposed Floating-Point Adder architecture is compliant with the IEEE 754 si
     The final stage executes the normalization shift ($M_{final} = M_{sum} \ll L_{shift}$) and adjusts the exponent accordingly ($E_{final} = E_{large} - L_{shift}$). Finally, Round-to-Nearest logic is applied to the guard bits, and the data is packed into the 32-bit IEEE 754 output format.
 \end{itemize}
 
-\begin{figure}[h]
+\begin{figure}
     \centering
     \includegraphics[width=0.7\textwidth]{images/AddFPSpec.png}
     \caption{5-Stage Pipelined Architecture of the Floating Point Adder}
