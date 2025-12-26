@@ -1,5 +1,5 @@
 \section{Specification}
-\subsection*{Algorithm}
+\subsection{Algorithm Overview}
 The convolution of two signals, $x[n]$ and $h[n]$, is computationally intensive in the time domain. To accelerate this process, we utilize the Convolution Theorem, which states that convolution in the time domain corresponds to point-wise multiplication in the frequency domain.
 
 \begin{figure}
@@ -9,7 +9,7 @@ The convolution of two signals, $x[n]$ and $h[n]$, is computationally intensive 
     \label{fig:Conv1}
 \end{figure}
 
-\subsection*{Proposed Optimizations Hardware Architecture}
+\subsection{Proposed Optimizations Architecture}
 To achieve an area-efficient design, we propose a resource-sharing strategy that exploits the arithmetic similarities between the processing stages. 
 
 \textbf{Resource Sharing Optimization:}
@@ -23,7 +23,7 @@ A critical optimization in our design is the specific selection of FFT variants.
 \end{itemize}
 By performing the intermediate point-wise multiplication directly on the bit-reversed data, we seamlessly connect the FFT output to the IFFT input. This eliminates the need for explicit data reordering buffers or logic, thereby reducing latency and memory addressing overhead.
 
-\subsection*{Hardware Architecture}
+\subsection{Hardware Architecture}
 
 Based on the proposed architecture, the hardware implementation consists of the following key components:
 
