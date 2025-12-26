@@ -1,4 +1,47 @@
 \section{Specification}
+\subsection*{Algorithm}
+The convolution of two signals, $x[n]$ and $h[n]$, is computationally intensive in the time domain. To accelerate this process, we utilize the Convolution Theorem, which states that convolution in the time domain corresponds to point-wise multiplication in the frequency domain.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/ConvSpec1.png}
+    \caption{Convolution Compute using FFT Accelerator}
+    \label{fig:Conv1}
+\end{figure}
+
+\subsection*{Proposed Optimizations Hardware Architecture}
+To achieve an area-efficient design, we propose a resource-sharing strategy that exploits the arithmetic similarities between the processing stages. 
+
+\textbf{Resource Sharing Optimization:}
+An analysis of the computational flow reveals that the Decimation-in-Frequency (DIF) FFT, the Decimation-in-Time (DIT) IFFT, and the point-wise multiplication steps all rely heavily on complex multiplication and addition/subtraction. Rather than instantiating separate hardware modules for each stage, we design a unified \textbf{Arithmetic Logic Unit (ALU)} capable of configuring itself as a Butterfly unit or a complex multiplier. This approach significantly reduces the silicon area, albeit at the cost of increased complexity in the Control Unit state machine.
+
+\textbf{DIF-FFT and DIT-IFFT Pairing:}
+A critical optimization in our design is the specific selection of FFT variants. We implement the forward transform using the \textbf{Radix-2 DIF} algorithm and the inverse transform using the \textbf{Radix-2 DIT} algorithm. 
+\begin{itemize}
+    \item The \textbf{DIF-FFT} produces output data in \textit{bit-reversed} order.
+    \item The \textbf{DIT-IFFT} expects input data in \textit{bit-reversed} order to produce natural-order output.
+\end{itemize}
+By performing the intermediate point-wise multiplication directly on the bit-reversed data, we seamlessly connect the FFT output to the IFFT input. This eliminates the need for explicit data reordering buffers or logic, thereby reducing latency and memory addressing overhead.
+
+\subsection*{Hardware Architecture}
+
+Based on the proposed architecture, the hardware implementation consists of the following key components:
+
+\begin{itemize}
+    \item \textbf{RAM (Dual-port SRAM):} Provides on-chip storage for input sequences, intermediate spectral data ($X[k], Y[k]$), and the final output. It supports simultaneous read/write operations to maximize throughput.
+    \item \textbf{Twiddle Factor ROM:} A lookup table storing the pre-computed trigonometric coefficients ($W_N^k$) required for the butterfly operations.
+    \item \textbf{ALU (Reconfigurable Datapath):} The core computational engine. It executes complex additions and multiplications, dynamically switching roles between FFT Butterfly processing, spectral multiplication, and IFFT Butterfly processing.
+    \item \textbf{Control Unit:} A Finite State Machine (FSM) that orchestrates the entire operation. It manages the complex addressing modes for bit-reversal/natural order access and controls the ALU's operating mode across the three processing stages.
+\end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/ConvSpec2.pdf}
+    \caption{Architecture Convolution using FFT Accelerator}
+    \label{fig:Conv2}
+\end{figure}
+
+\pagebreak
 \subsection{RAM}
 
 \subsubsection{Overview}
