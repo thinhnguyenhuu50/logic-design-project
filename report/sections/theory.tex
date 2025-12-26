@@ -31,7 +31,7 @@ Equations\eqref{eq:dft_def_short}--\eqref{eq:twiddle_def_short} describe the fre
 
 Direct computation of\eqref{eq:dft_def_short} requires $\mathcal{O}(N^2)$ operations. The Fast Fourier Transform (FFT) reduces this cost by recursively decomposing the DFT into smaller transforms using the periodicity and symmetry of $W_N$ \cite{proakis_fft}.
 
-\paragraph{Radix-2 DIT Decomposition.}
+\subsubsection{Radix-2 DIT Decomposition.}
 In the radix-2 Decimation-in-Time (DIT) FFT, the input sequence is split into even- and odd-indexed samples:
 \begin{equation}
 x_e(r) = x(2r), \qquad
@@ -62,7 +62,7 @@ O(k) \triangleq \sum_{r=0}^{\frac{N}{2}-1} x_o(r)\, W_{N/2}^{rk},
 
 where $E(k)$ and $O(k)$ are $(N/2)$-point DFTs of the even and odd subsequences, respectively \cite{proakis_fft}.
 
-\paragraph{Radix-2 DIF Decomposition.}
+\subsubsection{Radix-2 DIF Decomposition.}
 In the radix-2 Decimation-in-Frequency (DIF) FFT, the decomposition is applied in the frequency domain. The first butterfly stage computes
 \begin{equation}
 u(r) = x(r) + x\!\left(r+\frac{N}{2}\right),
@@ -74,7 +74,7 @@ v(r) = \big[x(r) - x\!\left(r+\frac{N}{2}\right)\big] W_N^{r},
 \end{equation}
 which are then processed by two independent $(N/2)$-point DFTs to obtain the even- and odd-indexed frequency components \cite{proakis_fft}.
 
-\paragraph{Computational Significance.}
+\subsubsection{Computational Significance.}
 Both DIT and DIF FFT algorithms reduce the computational complexity of the DFT to
 \begin{equation}
 \mathcal{O}(N \log_2 N),
@@ -125,7 +125,7 @@ In the proposed hardware architecture, the forward FFT is implemented using
 the radix-2 DIF algorithm, while the inverse FFT is realized using the radix-2
 DIT algorithm.
 
-\paragraph{FFT-Based Convolution Flow.}
+\subsubsection{FFT-Based Convolution Flow.}
 Based on \eqref{eq:freq_mult} and \eqref{eq:fft_conv}, linear convolution can be
 efficiently implemented using the following steps:
 \begin{enumerate}
@@ -135,7 +135,7 @@ efficiently implemented using the following steps:
     \item Apply the inverse FFT to obtain $y(n) = \text{IFFT}\{Y(k)\}$.
 \end{enumerate}
 
-\paragraph{Computational Complexity Comparison.}
+\subsubsection{Computational Complexity Comparison.}
 For sequences of length approximately $N$, direct time-domain convolution requires
 $\mathcal{O}(N^2)$ operations.
 In contrast, FFT-based convolution requires:
@@ -150,7 +150,7 @@ Therefore, the overall computational complexity is
 \end{equation}
 which is significantly lower than the direct convolution approach for large $N$.
 
-\paragraph{Conclusion.}
+\subsubsection{Conclusion.}
 Due to its significantly reduced computational complexity and highly regular
 computational structure, FFT-based convolution is well suited for hardware
 implementation.
