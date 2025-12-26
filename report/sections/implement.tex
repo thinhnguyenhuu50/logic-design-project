@@ -166,10 +166,30 @@ To address this, we integrated specific delay buffers (as illustrated in the blo
 
 \subsubsection*{Addition Floating Point Unit}
 
-\begin{figure}
+The proposed Floating-Point Adder architecture is compliant with the IEEE 754 single-precision standard and is implemented using a 5-stage pipeline to maximize throughput. The datapath is decomposed into discrete functional blocks, utilizing Sign-Magnitude representation for efficient internal processing. The operation of each pipeline stage is described as follows:
+
+\begin{itemize}
+    \item \textbf{Stage 1: Exponent Comparison (\texttt{AFP\_Compare}):} 
+    This stage compares the exponents of the two operands ($E_A, E_B$). The absolute difference $\delta = |E_A - E_B|$ is calculated to determine the alignment shift amount. Simultaneously, the larger operand is identified to guide the datapath routing, and the hidden bit is appended to form 24-bit significands.
+
+    \item \textbf{Stage 2: Mantissa Alignment (\texttt{AFP\_Shift}):} 
+    To enable arithmetic operations, the significand of the smaller number is right-shifted by $\delta$ positions. This is implemented using a hardware \textit{Barrel Shifter}, ensuring that the binary points of both operands are aligned within a single clock cycle.
+
+    \item \textbf{Stage 3: Arithmetic Operation (\texttt{AFP\_Add}):} 
+    The core addition or subtraction is performed based on the effective operation sign. The ALU computes $M_{sum} = M_{large} \pm M_{shifted}$. The result is then converted back to Sign-Magnitude format (taking the absolute value if the result is negative) to prepare for normalization.
+
+    \item \textbf{Stage 4: Normalization Detection (\texttt{AFP\_Normal}):} 
+    To handle potential leading zeros resulting from subtraction, this stage employs a \textit{Priority Encoder} (Leading One Detector). It scans the arithmetic result to determine the necessary left-shift amount ($L_{shift}$) required to restore the significand to the normalized $1.xxxx$ format.
+
+    \item \textbf{Stage 5: Normalization and Rounding (\texttt{AFP\_Rounding}):} 
+    The final stage executes the normalization shift ($M_{final} = M_{sum} \ll L_{shift}$) and adjusts the exponent accordingly ($E_{final} = E_{large} - L_{shift}$). Finally, Round-to-Nearest logic is applied to the guard bits, and the data is packed into the 32-bit IEEE 754 output format.
+\end{itemize}
+
+\begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/AddFPSpec.png}
-    \caption{Architecture of Floating Point Adder Unit}
+    \includegraphics[width=0.7\textwidth]{images/AddFPSpec.png}
+    \caption{5-Stage Pipelined Architecture of the Floating Point Adder}
+    \label{fig:fp_adder_arch}
 \end{figure}
 
 \subsubsection*{Multiplication Floating Point Unit}
