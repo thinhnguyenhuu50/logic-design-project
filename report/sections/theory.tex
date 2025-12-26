@@ -2,7 +2,7 @@
 
 \subsection{Discrete Fourier Transform (DFT)}
 
-The Discrete Fourier Transform (DFT) is a fundamental tool in digital signal processing that maps a finite-length discrete-time signal from the time domain into the frequency domain. Given a discrete-time sequence $x(n)$ of length $N$, the DFT is defined as \cite{proakis_dsp}:
+The Discrete Fourier Transform (DFT) is a fundamental tool in digital signal processing that maps a finite-length discrete-time signal from the time domain into the frequency domain. Given a discrete-time sequence $x(n)$ of length $N$, the DFT is defined as \cite{proakis_fft}:
 
 \begin{equation}
 X(k) = \sum_{n=0}^{N-1} x(n) W_N^{nk}, \quad k = 0,1,\dots,N-1
@@ -80,3 +80,82 @@ Both DIT and DIF FFT algorithms reduce the computational complexity of the DFT t
 \mathcal{O}(N \log_2 N),
 \end{equation}
 by organizing the computation into $\log_2 N$ stages of radix-2 butterfly operations, each exploiting the structure of the twiddle factors \cite{proakis_fft}.
+
+
+\subsection{Convolution Computation Using FFT}
+
+In digital signal processing, the linear convolution between two finite-length
+discrete-time sequences $x(n)$ and $h(n)$ is defined as
+\begin{equation}
+y(n) = (x * h)(n) = \sum_{m=0}^{L_x-1} x(m)\,h(n-m),
+\label{eq:time_conv}
+\end{equation}
+where $L_x$ and $L_h$ denote the lengths of the input sequence $x(n)$ and the impulse
+response $h(n)$, respectively.  
+The resulting output sequence $y(n)$ has a length of
+\[
+L_y = L_x + L_h - 1.
+\]
+
+A direct evaluation of \eqref{eq:time_conv} requires $\mathcal{O}(L_x L_h)$
+multiplications, which becomes computationally expensive for long sequences.
+
+A fundamental property of the Discrete Fourier Transform, known as the
+\emph{Convolution Theorem}, states that linear convolution in the time domain
+corresponds to pointwise multiplication in the frequency domain.
+Specifically, if $x(n)$ and $h(n)$ are zero-padded to a common length
+$N \ge L_x + L_h - 1$, then
+\begin{equation}
+Y(k) = X(k)\,H(k),
+\label{eq:freq_mult}
+\end{equation}
+where
+\[
+X(k) = \text{FFT}\{x(n)\}, \qquad
+H(k) = \text{FFT}\{h(n)\}.
+\]
+
+The linear convolution result can then be obtained by applying the inverse FFT:
+\begin{equation}
+y(n) = \text{IFFT}\!\left\{ X(k)\,H(k) \right\}.
+\label{eq:fft_conv}
+\end{equation}
+
+In the proposed hardware architecture, the forward FFT is implemented using
+the radix-2 DIF algorithm, while the inverse FFT is realized using the radix-2
+DIT algorithm.
+
+\paragraph{FFT-Based Convolution Flow.}
+Based on \eqref{eq:freq_mult} and \eqref{eq:fft_conv}, linear convolution can be
+efficiently implemented using the following steps:
+\begin{enumerate}
+    \item Zero-pad $x(n)$ and $h(n)$ to a common length $N$.
+    \item Compute $X(k) = \text{FFT}\{x(n)\}$ and $H(k) = \text{FFT}\{h(n)\}$.
+    \item Perform pointwise complex multiplication: $Y(k) = X(k)H(k)$.
+    \item Apply the inverse FFT to obtain $y(n) = \text{IFFT}\{Y(k)\}$.
+\end{enumerate}
+
+\paragraph{Computational Complexity Comparison.}
+For sequences of length approximately $N$, direct time-domain convolution requires
+$\mathcal{O}(N^2)$ operations.
+In contrast, FFT-based convolution requires:
+\begin{itemize}
+    \item Two FFT operations: $2\,\mathcal{O}(N\log_2 N)$,
+    \item One inverse FFT: $\mathcal{O}(N\log_2 N)$,
+    \item One pointwise complex multiplication: $\mathcal{O}(N)$.
+\end{itemize}
+Therefore, the overall computational complexity is
+\begin{equation}
+\mathcal{O}(N\log_2 N),
+\end{equation}
+which is significantly lower than the direct convolution approach for large $N$.
+
+\paragraph{Conclusion.}
+Due to its significantly reduced computational complexity and highly regular
+computational structure, FFT-based convolution is well suited for hardware
+implementation.
+The decomposition into FFT blocks, pointwise complex multipliers, and inverse FFT
+enables efficient pipelining, parallelism, and memory reuse.
+For these reasons, the proposed design adopts FFT-based convolution as the core
+computational strategy.
+
