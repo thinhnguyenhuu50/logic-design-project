@@ -181,7 +181,7 @@ Although all reconstruction logic is combinational, the generated twiddle factor
 This ensures deterministic timing behavior and seamless integration with the pipelined FFT butterfly units.
 
 Overall, the proposed ROM design achieves substantial memory reduction while maintaining exact trigonometric correctness,
-making it well suited for high-performance FFT hardware implementations.
+making it well suited for high-performance FFT hardware implementations.\cite{Zhang2025}
 
 \subsection{Arithmetic Logic Unit (ALU)}
 
@@ -257,6 +257,12 @@ The output of the accumulation pipeline is a 48-bit raw mantissa. The final stag
     \item \textbf{Rounding:} Round-to-Nearest logic is applied to truncate the result to 23 fraction bits, after which the Sign, Exponent, and Mantissa are packed into the final 32-bit register.
 \end{itemize}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/MulFPDA.pdf}
+    \caption{Block Diagram of the Multiplication Floating Point Unit}
+\end{figure}
+
 \subsubsection{Complex Adder Unit}
 
 The Complex Adder Unit serves as a structural wrapper designed to perform addition on complex numbers according to the formula $(R_1 + jI_1) + (R_2 + jI_2) = (R_1+R_2) + j(I_1+I_2)$. To maximize throughput, the architecture exploits the inherent independence of the real and imaginary components.
@@ -287,6 +293,12 @@ The unit performs complex multiplication $Z = (AC - BD) + j(AD + BC)$ by decompo
 \end{itemize}
 
 This strict \textbf{12-cycle deterministic latency} ensures synchronization with the global control unit, preventing data hazards in the FFT processing stages.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/DAComplexMul.jpg}
+    \caption{Block Diagram of the Complex Multiplier Unit}
+\end{figure}
 
 \subsubsection{Divider by N Unit}
 
@@ -328,6 +340,12 @@ Based on the synthesized datapath, the total processing latency for each operati
 
 \textbf{Conclusion:}
 The global architecture successfully manages inter-stage latencies. By strictly controlling the delay constraints for DIF, DIT, and MPW modes, the system ensures a seamless, stall-free pipeline flow, guaranteeing data integrity throughout the convolution process.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/ALUDA.pdf}
+    \caption{Block Diagram of the ALU Module}
+\end{figure}
 
 \subsection{Control Unit Design}
 
@@ -388,6 +406,17 @@ Substituting the generalized formulas:
     T_{\text{Total}} \approx 3 \times \left( \frac{33N}{32} \log_2 N \right) + \frac{21N}{8}
 \end{equation}
 This formula demonstrates that the system performance scales linearly with $N \log N$, constrained primarily by the pipeline depth of the arithmetic units.
+
+\subsection{Convolution module}
+
+The top module integrates all previously described components into a cohesive system. It instantiates the Control Unit, ALU, RAMs, and Twiddle Factor ROM, connecting them through well-defined interfaces. The top module manages data flow, control signals, and synchronization across the entire architecture.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{images/convDA.pdf}
+    \caption{Block Diagram of the Convolution Module}
+\end{figure}
+
 
 \section{Results Synthesis and Implementation}
 

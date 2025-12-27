@@ -189,14 +189,13 @@ assign data_out = MUX_out? RRAM1[31:0] : 32'b0;
 assign valid_output = MUX_out;
 endmodule 
 
-
-module Top_ConvFTT_1LED (
-    input  wire       clk,          // Đã đổi từ sys_clk -> clk
-    input  wire       sys_rst_n,    // Reset (Active Low)
-    output reg        led_done      // LED báo hiệu
+//Module is using synthesis
+module Convolution_FFT (
+    input  wire       clk,        
+    input  wire       sys_rst_n,    
+    output reg        led_done   
 );
 
-    // --- 1. TÍN HIỆU NỘI BỘ ---
     reg         start_reg;
     wire        done_wire;
     wire        valid_wire;
@@ -207,15 +206,11 @@ module Top_ConvFTT_1LED (
     reg [5:0]   feed_counter;
     reg         feeding;
     
-    // Biến kiểm tra dữ liệu
     reg [31:0]  result_checksum;
 
-    // Hằng số 1.0 và 0.0 (Float IEEE 754)
     localparam [31:0] FP_ONE  = 32'h3F800000;
     localparam [31:0] FP_ZERO = 32'h00000000;
 
-    // --- 2. LOGIC NẠP INPUT TỰ ĐỘNG ---
-    // Lưu ý: Đã đổi sys_clk -> clk trong danh sách nhạy (sensitivity list)
     always @(posedge clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             start_reg    <= 0;
@@ -224,7 +219,6 @@ module Top_ConvFTT_1LED (
             test_data_1  <= 0;
             test_data_2  <= 0;
         end else begin
-            // Kích hoạt Start sau khi reset
             if (feed_counter == 0 && !feeding && !done_wire && result_checksum == 0) begin
                 start_reg <= 1;
                 feeding   <= 1;
@@ -232,7 +226,7 @@ module Top_ConvFTT_1LED (
                 start_reg <= 0;
             end
 
-            // Nạp dữ liệu
+
             if (feeding) begin
                 if (feed_counter < 16) begin
                     test_data_1 <= FP_ONE;
@@ -248,11 +242,10 @@ module Top_ConvFTT_1LED (
         end
     end
 
-    // --- 3. INSTANTIATE CONVFTT (DUT) ---
     ConvFTT #(
         .N(32)
     ) dut (
-        .clk(clk),              // Nối clk vào
+        .clk(clk),             
         .rst_n(sys_rst_n),
         .start(start_reg),
         .data_in1(test_data_1),
@@ -262,23 +255,21 @@ module Top_ConvFTT_1LED (
         .done(done_wire)
     );
 
-    // --- 4. LOGIC LED THÔNG MINH ---
     always @(posedge clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
             result_checksum <= 0;
             led_done        <= 0;
         end else begin
-            // A. Tích lũy kết quả
+
             if (valid_wire) begin
                 result_checksum <= result_checksum | data_out_wire;
             end
 
-            // B. Điều khiển LED
             if (done_wire) begin
                 if (result_checksum != 0) 
-                    led_done <= 1; // Sáng: PASS
+                    led_done <= 1;
                 else 
-                    led_done <= 0; // Tắt: FAIL
+                    led_done <= 0;
             end
         end
     end
